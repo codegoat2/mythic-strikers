@@ -1,0 +1,97 @@
+{
+  "name": "MythicStrikers",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+
+      "Remotes": {
+        "$path": "src/ReplicatedStorage/Remotes"
+      },
+
+      "Shared": {
+        "$className": "Folder",
+
+        "Config": {
+          "$className": "Folder",
+          "Constants":         { "$path": "src/ReplicatedStorage/Shared/Config/Constants.lua" },
+          "DefaultAttributes": { "$path": "src/ReplicatedStorage/Shared/Config/DefaultAttributes.lua" },
+          "MatchConfig":       { "$path": "src/ReplicatedStorage/Shared/Config/MatchConfig.lua" }
+        },
+
+        "Types": {
+          "$path": "src/ReplicatedStorage/Shared/Types"
+        },
+
+        "Techniques": {
+          "$className": "Folder",
+          "TechniqueDefinitions": {
+            "$path": "src/ReplicatedStorage/Shared/Techniques/TechniqueDefinitions.lua"
+          }
+        }
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+
+      "ServerMain": {
+        "$path": "src/ServerScriptService/ServerMain.server.lua"
+      },
+
+      "Services": {
+        "$className": "Folder",
+        "BallService":        { "$path": "src/ServerScriptService/Services/BallService.lua" },
+        "TeamService":        { "$path": "src/ServerScriptService/Services/TeamService.lua" },
+        "MatchService":       { "$path": "src/ServerScriptService/Services/MatchService.lua" },
+        "TechniqueService":   { "$path": "src/ServerScriptService/Services/TechniqueService.lua" },
+        "PlayerService":      { "$path": "src/ServerScriptService/Services/PlayerService.lua" },
+        "ShopService":        { "$path": "src/ServerScriptService/Services/ShopService.lua" },
+        "AntiExploitService": { "$path": "src/ServerScriptService/Services/AntiExploitService.lua" },
+        "ObjectiveService":   { "$path": "src/ServerScriptService/Services/ObjectiveService.lua" },
+        "TrainingBuilder":    { "$path": "src/ServerScriptService/Services/TrainingBuilder.lua" },
+        "LobbyBuilder":       { "$path": "src/ServerScriptService/Services/LobbyBuilder.server.lua" },
+        "StadiumBuilder":     { "$path": "src/Workspace/Stadium/StadiumBuilder.server.lua" }
+      }
+    },
+
+    "StarterGui": {
+      "$className": "StarterGui",
+
+      "UI": {
+        "$className": "Folder",
+        "ShopUI": { "$path": "src/StarterGui/UI/ShopUI.lua" }
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+
+        "ClientMain": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.lua"
+        },
+
+        "Controllers": {
+          "$className": "Folder",
+          "InputController":    { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/InputController.lua" },
+          "CameraController":   { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/CameraController.lua" },
+          "FootballController": { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/FootballController.lua" },
+          "UIController":       { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/UIController.lua" },
+          "LobbyController":    { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/LobbyController.lua" }
+        }
+      }
+    },
+
+    "Workspace": {
+      "$className": "Workspace"
+    },
+
+    "SoundService": {
+      "$className": "SoundService"
+    }
+  }
+}
