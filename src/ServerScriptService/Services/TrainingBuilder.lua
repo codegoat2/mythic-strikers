@@ -134,22 +134,29 @@ local function tagZone(p: BasePart, zoneId: string)
 end
 
 --- A floating label above a pad.
+--- BillboardGui uses a fixed PIXEL size, so a 260px label only 7 studs up
+--- fills the screen the moment the player walks nearby — several zone signs
+--- then overlap into unreadable wall-of-text. Kept small, pushed well above the
+--- pad, and given a MaxDistance so it fades out before it dominates the view.
 local function makeSign(anchor: BasePart, text: string, offset: Vector3)
 	local billboard = Instance.new("BillboardGui")
-	billboard.Name      = "ZoneLabel"
-	billboard.Size      = UDim2.fromOffset(260, 64)
-	billboard.StudsOffset = offset
-	billboard.AlwaysOnTop = true
-	billboard.Parent    = anchor
+	billboard.Name         = "ZoneLabel"
+	billboard.Size         = UDim2.fromOffset(150, 38)
+	billboard.StudsOffset  = offset + Vector3.new(0, 10, 0)
+	billboard.StudsOffsetWorldSpace = offset
+	billboard.AlwaysOnTop  = false
+	billboard.MaxDistance  = 90
+	billboard.LightInfluence = 0
+	billboard.Parent       = anchor
 
 	local label = Instance.new("TextLabel")
 	label.Size            = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
 	label.Text            = text
 	label.TextColor3      = Color3.new(1, 1, 1)
-	label.TextStrokeTransparency = 0.5
+	label.TextStrokeTransparency = 0.4
 	label.Font            = Enum.Font.GothamBold
-	label.TextSize        = 26
+	label.TextSize        = 16
 	label.TextScaled      = true
 	label.Parent          = billboard
 end
@@ -173,7 +180,7 @@ local function buildPad(zoneId: string, centre: Vector3, tint: BrickColor)
 				zoneId .. "_Post",
 				Vector3.new(2, 5, 2),
 				CFrame.new(centre + Vector3.new(sx * (PAD / 2 - 2), 3, sz * (PAD / 2 - 2))),
-				tint, Enum.Material.Neon
+				tint, Enum.Material.Metal
 			)
 			post.Transparency = 0.4
 			tagZone(post, zoneId)
@@ -198,7 +205,7 @@ local function buildConsole(zoneId: string, label: string, centre: Vector3)
 		zoneId .. "_Console",
 		Vector3.new(4, 3, 2),
 		CFrame.new(centre + Vector3.new(0, 2, PAD / 2 - 6)),
-		COL.CONSOLE, Enum.Material.Neon
+		COL.CONSOLE, Enum.Material.Metal
 	)
 	console.Transparency = 0.3
 	tagZone(console, zoneId)
@@ -253,7 +260,7 @@ local function buildShooting(centre: Vector3)
 			id .. "_Target" .. i,
 			Vector3.new(10, 10, 0.5),
 			CFrame.new(centre + Vector3.new((i - 2) * 15, 7, -PAD / 2 + 2.5)),
-			COL.TARGET, Enum.Material.Neon
+			COL.TARGET, Enum.Material.Metal
 		)
 		t.Transparency = 0.35
 		tagZone(t, id)
@@ -280,12 +287,12 @@ local function buildPassing(centre: Vector3)
 		frame.Parent = model
 		for _, sx in ipairs({ -1, 1 }) do
 			local side = part(id .. "_GateSide", Vector3.new(0.5, 12, 0.5),
-				CFrame.new(z + Vector3.new(sx * 7, 6, 0)), BrickColor.new("Bright green"), Enum.Material.Neon)
+				CFrame.new(z + Vector3.new(sx * 7, 6, 0)), BrickColor.new("Bright green"), Enum.Material.Metal)
 			side.Transparency = 0.3
 			tagZone(side, id)
 		end
 		local top = part(id .. "_GateTop", Vector3.new(15, 0.5, 0.5),
-			CFrame.new(z + Vector3.new(0, 12, 0)), BrickColor.new("Bright green"), Enum.Material.Neon)
+			CFrame.new(z + Vector3.new(0, 12, 0)), BrickColor.new("Bright green"), Enum.Material.Metal)
 		top.Transparency = 0.3
 		tagZone(top, id)
 		table.insert(gates, frame)
@@ -324,7 +331,7 @@ local function buildDribbling(centre: Vector3)
 		id .. "_Finish",
 		Vector3.new(20, 0.3, 8),
 		CFrame.new(centre + Vector3.new(0, 0.7, PAD / 2 - 8)),
-		BrickColor.new("Lime green"), Enum.Material.Neon, false
+		BrickColor.new("Lime green"), Enum.Material.Metal, false
 	)
 	finish.Transparency = 0.4
 	tagZone(finish, id)
@@ -370,7 +377,7 @@ local function buildGoalkeeping(centre: Vector3)
 		id .. "_Tee",
 		Vector3.new(3, 1, 3),
 		CFrame.new(centre + Vector3.new(0, 0.7, -PAD / 2 + 10)),
-		COL.GOALKEEP, Enum.Material.Neon
+		COL.GOALKEEP, Enum.Material.Metal
 	)
 	tee.Transparency = 0.4
 	tagZone(tee, id)
@@ -669,6 +676,58 @@ local function wirePrompts()
 	end
 end
 
+--- Distant scenery.
+--- Without this the world simply stops: past the last building there is void,
+--- which is what makes the map read as unfinished rather than bounded. A low
+--- ground plane plus a ring of hills gives the horizon something to sit against
+--- and stops the player seeing empty space at the edge of the playable area.
+local function buildSurroundings()
+	-- Centre of all content: the stadium sits at the origin and the town at
+	-- LOBBY_ORIGIN, so midpoint of the two covers everything.
+	local centre = Vector3.new(0, 0, (Constants.LOBBY_ORIGIN.Z + 0) / 2)
+
+	-- Ground plane, well below the built floors so it never z-fights them.
+	local ground = Instance.new("Part")
+	ground.Name        = "Surroundings_Ground"
+	ground.Size        = Vector3.new(4000, 4, 4000)
+	ground.CFrame      = CFrame.new(centre + Vector3.new(0, -6, 0))
+	ground.Anchored    = true
+	ground.CanCollide  = true
+	ground.Material    = Enum.Material.Grass
+	ground.BrickColor  = BrickColor.new("Earth green")
+	ground.CastShadow  = false
+	ground.TopSurface  = Enum.SurfaceType.Smooth
+	ground.Parent      = model
+
+	-- A ring of hills. Deterministic placement so the horizon is stable
+	-- between runs, and far enough out that it never intersects playable space.
+	local RING_RADIUS = 1500
+	local COUNT      = 28
+	for i = 1, COUNT do
+		local angle  = (i / COUNT) * math.pi * 2
+		-- Vary radius and height deterministically from the index.
+		local radius = RING_RADIUS + ((i * 137) % 420)
+		local height = 90 + ((i * 61) % 130)
+		local width  = 300 + ((i * 89) % 260)
+
+		local hill = Instance.new("Part")
+		hill.Name       = "Surroundings_Hill" .. i
+		hill.Size       = Vector3.new(width, height, width)
+		hill.CFrame     = CFrame.new(centre + Vector3.new(
+			math.cos(angle) * radius, height / 2 - 20, math.sin(angle) * radius
+		)) * CFrame.Angles(0, angle, 0)
+		hill.Shape      = Enum.PartType.Ball
+		hill.Anchored   = true
+		hill.CanCollide = false
+		hill.CanTouch   = false
+		hill.Material   = Enum.Material.Grass
+		hill.BrickColor = BrickColor.new("Earth green")
+		hill.CastShadow = false
+		hill.TopSurface = Enum.SurfaceType.Smooth
+		hill.Parent     = model
+	end
+end
+
 -- ─────────────────────────────────────────────
 -- Build
 -- ─────────────────────────────────────────────
@@ -718,11 +777,12 @@ local function buildGrounds()
 	spawn.Enabled     = true
 	spawn.Duration    = 0
 	spawn.BrickColor  = BrickColor.new("Bright green")
-	spawn.Material    = Enum.Material.Neon
+	spawn.Material    = Enum.Material.Metal
 	spawn.Transparency = 0.5
 	spawn.Parent      = model
 
 	wirePrompts()
+	buildSurroundings()
 
 	local count = 0
 	for _ in model:GetDescendants() do count += 1 end

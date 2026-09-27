@@ -25,6 +25,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Constants              = require(ReplicatedStorage.Shared.Config.Constants)
 local Remotes                = require(ReplicatedStorage.Remotes)
 local TechniqueDefinitions   = require(ReplicatedStorage.Shared.Techniques.TechniqueDefinitions)
+local AssetRegistry          = require(ReplicatedStorage.Shared.Config.AssetRegistry)
 
 -- ─────────────────────────────────────────────
 -- Module
@@ -105,6 +106,19 @@ local function calcShotSpeed(player: Player, techPower: number): number
 	local normalised = math.clamp(powerStat / 100, 0, 1)
 	local baseSpeed = Constants.SHOT_MIN_POWER + normalised * (Constants.SHOT_MAX_POWER - Constants.SHOT_MIN_POWER)
 	return baseSpeed * techPower
+end
+
+--- Spawn server-side VFX and SFX for a technique at the given position.
+local function playTechniqueAssets(player: Player, techId: string, position: Vector3)
+	local assets = AssetRegistry.GetTechniqueAssets(techId)
+	if not assets then return end
+
+	if assets.VFX then
+		AssetRegistry.SpawnVFX(assets.VFX, position)
+	end
+	if assets.SFX then
+		AssetRegistry.PlaySFX(assets.SFX, position)
+	end
 end
 
 -- ─────────────────────────────────────────────
@@ -208,7 +222,7 @@ local function executeBlock(player: Player, def: table, direction: Vector3)
 	barrier.CanCollide = false
 	barrier.Transparency = 0.5
 	barrier.BrickColor = BrickColor.new("Bright yellow")
-	barrier.Material = Enum.Material.Neon
+	barrier.Material = Enum.Material.Metal
 	barrier.Parent = workspace
 
 	-- Auto-cleanup after duration
@@ -389,6 +403,12 @@ local function onRequestTechnique(player: Player, payload: table)
 		success = executeGoalkeeper(player, def, direction)
 	end
 
+	-- Spawn server-side VFX/SFX at the player's position
+	local root = getPlayerRoot(player)
+	if root then
+		playTechniqueAssets(player, def.Id, root.Position)
+	end
+
 	-- Broadcast technique activation to all clients (for VFX)
 	Remotes.FireAllClients(Constants.Remotes.TechniqueResult, {
 		PlayerId    = player.UserId,
@@ -403,6 +423,7 @@ local function onRequestTechnique(player: Player, payload: table)
 		VFX         = def.VFX,
 		SFX         = def.SFX,
 		Cinematic   = def.Cinematic,
+		Position    = root and root.Position or Vector3.zero,
 		Timestamp   = tick(),
 	})
 

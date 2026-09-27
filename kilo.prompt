@@ -1,0 +1,2495 @@
+# MYTHIC STRIKERS — VISUAL REBUILD
+
+## FROM PROTOTYPE TO POLISHED ANIME FOOTBALL RPG
+
+Project:
+
+`C:\Users\CODE\desktop\mythicstrikers`
+
+The current game is functional as a prototype, but the visual presentation is not acceptable for the intended Mythic Strikers experience.
+
+The current result looks like an early development test:
+
+* mostly flat blue surfaces
+* simple block geometry
+* random colored placeholder objects
+* empty surroundings
+* weak environmental detail
+* generic stadium construction
+* weak visual hierarchy
+* basic/debug-looking UI
+* little sense of an actual world
+* no convincing town/city
+* no strong anime football identity
+* lighting does not create atmosphere
+* the stadium looks like a testing arena rather than a real football stadium
+
+Do NOT simply add more random Parts.
+
+Do NOT just change colors.
+
+Do NOT simply add decorations to the existing prototype.
+
+The objective is to **rebuild the visual presentation into a cohesive, polished supernatural football RPG world while preserving and improving the existing gameplay systems.**
+
+---
+
+# 1. MOST IMPORTANT OBJECTIVE
+
+Transform Mythic Strikers from:
+
+```text
+TECHNICAL PROTOTYPE
+↓
+BLOCKOUT
+↓
+DEBUG ENVIRONMENT
+```
+
+into:
+
+```text
+POLISHED ROBLOX FOOTBALL RPG
+↓
+LIVING WORLD
+↓
+ANIME SPORTS ATMOSPHERE
+↓
+SUPERNATURAL IDENTITY
+```
+
+The game should immediately communicate:
+
+> "This is a real anime-inspired supernatural football RPG."
+
+It should NOT communicate:
+
+> "This is a collection of test Parts."
+
+---
+
+# 2. DO NOT DESTROY WORKING GAMEPLAY
+
+Before making changes:
+
+1. Inspect the entire repository.
+2. Inspect the existing Workspace structure.
+3. Inspect StadiumBuilder.
+4. Inspect MatchService.
+5. Inspect BallService.
+6. Inspect PlayerService.
+7. Inspect TeamService.
+8. Inspect existing UI.
+9. Inspect existing controllers.
+10. Inspect existing Shared configuration.
+11. Inspect existing techniques.
+12. Inspect the Rojo project structure.
+
+Determine what is functional.
+
+Do NOT delete functional football systems simply because the environment looks bad.
+
+Do NOT rewrite everything blindly.
+
+Preserve:
+
+* football mechanics
+* ball system
+* match system
+* team system
+* player system
+* technique framework
+* progression
+* remotes
+* server validation
+* DataStore architecture
+
+Refactor only where necessary.
+
+---
+
+# 3. CURRENT VISUAL PROBLEMS TO ELIMINATE
+
+The existing environment must NOT contain the visual characteristics of the current prototype.
+
+Specifically eliminate:
+
+* random neon-colored blocks
+* arbitrary colored Parts
+* floating geometry without purpose
+* giant empty flat surfaces
+* unfinished stadium geometry
+* excessive use of default Roblox Part appearance
+* meaningless platforms
+* placeholder walls
+* disconnected objects
+* excessive empty space
+* debug-looking construction
+* inconsistent scale
+* inconsistent materials
+* poor lighting
+* unfinished-looking structures
+
+Every visible object should have a reason to exist.
+
+---
+
+# 4. VISUAL DIRECTION
+
+Mythic Strikers should have an:
+
+**Anime-inspired supernatural football RPG aesthetic.**
+
+The style should combine:
+
+* modern anime sports
+* supernatural fantasy
+* polished Roblox environments
+* cinematic football presentation
+* energetic stadium atmosphere
+* believable urban environments
+
+Do NOT directly copy any existing anime.
+
+Do NOT copy:
+
+* characters
+* uniforms
+* logos
+* stadium designs
+* UI
+* techniques
+* animations
+* copyrighted visual assets
+
+The game must establish its own visual identity.
+
+---
+
+# 5. COLOR DIRECTION
+
+Establish a deliberate visual palette.
+
+Use:
+
+* deep blue
+* navy
+* charcoal
+* white
+* muted concrete tones
+* natural grass
+* controlled supernatural accent colors
+
+Avoid making the world look like:
+
+```text
+RED BLOCK
+GREEN BLOCK
+BLUE BLOCK
+YELLOW BLOCK
+PURPLE BLOCK
+```
+
+Random bright colors should not be used as environmental placeholders.
+
+Supernatural colors should be reserved primarily for:
+
+* techniques
+* energy
+* special effects
+* interactive elements
+* important visual landmarks
+
+---
+
+# 6. WORLD FIRST — NOT JUST A STADIUM
+
+The current game feels like a stadium test environment.
+
+Fix this.
+
+The player must eventually feel like they exist in a real football world.
+
+Update 1.0 should establish a **compact but visually rich town** surrounding the main gameplay areas.
+
+The world should include:
+
+```text
+                    ┌─────────────────────┐
+                    │     TOWN CENTER     │
+                    │ shops / NPCs / plaza│
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+              ▼                ▼                ▼
+        RESIDENTIAL       TRAINING AREA      SHOPS
+        DISTRICT                             
+              │                │
+              │                ▼
+              │          TRAINING STADIUM
+              │
+              ▼
+       MAIN FOOTBALL STADIUM
+              │
+              ▼
+       SOCIAL / PARK AREA
+```
+
+This does NOT need to be enormous.
+
+It needs to be **dense and interesting**.
+
+---
+
+# 7. TOWN DESIGN
+
+Create a believable football town.
+
+Include:
+
+## Residential area
+
+* houses
+* apartments
+* driveways
+* sidewalks
+* fences
+* streetlights
+* mailboxes
+* parked vehicles where appropriate
+* trees
+* small gardens
+* benches
+* utility structures
+
+Buildings should have varied:
+
+* height
+* shape
+* roof design
+* windows
+* balconies
+* materials
+
+Do not make every building identical.
+
+---
+
+# 8. TOWN CENTER
+
+Create a recognizable central area.
+
+Possible elements:
+
+* plaza
+* fountain or landmark
+* benches
+* trees
+* shops
+* signs
+* NPCs
+* street lamps
+* pathways
+* decorative football elements
+
+The town center should become the player's natural social gathering area.
+
+---
+
+# 9. FOOTBALL IDENTITY
+
+Football should be visible throughout the world.
+
+Use environmental storytelling.
+
+Examples:
+
+* football posters
+* academy advertisements
+* team banners
+* football shops
+* training advertisements
+* public football courts
+* goals
+* balls
+* football murals
+* stadium signs
+* player advertisements
+* tournament posters
+
+Do not fill the entire world with random football objects.
+
+Use them deliberately.
+
+---
+
+# 10. STREET FOOTBALL AREA
+
+Create a small street football area.
+
+Include:
+
+* compact pitch
+* goals
+* fences
+* lights
+* benches
+* spectators/NPCs
+* surrounding buildings
+* football props
+
+This gives players somewhere to practice casually without entering the main stadium.
+
+---
+
+# 11. TRAINING STADIUM
+
+Rebuild the training stadium.
+
+It should look like a real training complex.
+
+Include:
+
+### Main pitch
+
+* high-quality grass
+* pitch markings
+* realistic proportions
+* goals
+* nets
+* corner flags
+
+### Training zones
+
+* shooting goals
+* passing targets
+* dribbling obstacles
+* defensive training area
+* goalkeeper area
+* technique practice area
+
+### Surroundings
+
+* fencing
+* lights
+* benches
+* equipment
+* storage
+* staff areas
+* small buildings
+* signs
+
+The training stadium should look intentionally designed.
+
+---
+
+# 12. MAIN COMPETITIVE STADIUM
+
+The competitive stadium should be the visual centerpiece of Update 1.0.
+
+It needs:
+
+## Pitch
+
+* believable grass
+* proper football markings
+* center circle
+* penalty areas
+* goal areas
+* corner arcs
+* goals
+* nets
+* corner flags
+
+## Stands
+
+Create actual spectator stands.
+
+Include:
+
+* multiple seating sections
+* railings
+* stairways
+* entrances
+* structural supports
+* stadium walls
+
+Do not make the stands a single giant block.
+
+---
+
+# 13. STADIUM ARCHITECTURE
+
+Build recognizable stadium architecture.
+
+Include:
+
+* entrance
+* gates
+* concourse
+* ticket area
+* player tunnel
+* locker-room entrance
+* media area
+* technical area
+* benches
+* scoreboard
+* lighting towers
+* roof structures where appropriate
+
+The stadium should feel like a place people could actually enter.
+
+---
+
+# 14. STADIUM ATMOSPHERE
+
+The stadium needs life.
+
+Use:
+
+* stadium lights
+* subtle crowd ambience
+* banners
+* flags
+* advertising boards
+* scoreboard
+* team colors
+* environmental lighting
+* atmospheric effects
+
+Do not overdo particles.
+
+The football field must remain visually readable.
+
+---
+
+# 15. STADIUM LIGHTING
+
+Replace the flat prototype lighting.
+
+Use deliberate:
+
+* Lighting settings
+* Atmosphere
+* ColorCorrection
+* Bloom where appropriate
+* Shadows
+* ambient lighting
+* sun direction
+* stadium lights
+
+Create a strong visual hierarchy.
+
+The pitch should be clearly visible.
+
+The stadium should feel dramatic without becoming dark or unreadable.
+
+---
+
+# 16. TIME / ATMOSPHERE FOUNDATION
+
+Prepare the architecture for future environmental variations.
+
+The game should be capable of eventually supporting:
+
+* daytime
+* evening
+* night
+* special event lighting
+
+For Update 1.0, prioritize one polished default environment rather than several unfinished environments.
+
+---
+
+# 17. MATERIAL QUALITY
+
+Stop relying on default-looking plastic Parts for everything.
+
+Use appropriate materials.
+
+Examples:
+
+### Roads
+
+Asphalt / concrete.
+
+### Buildings
+
+Concrete / brick / glass / metal / wood.
+
+### Stadium
+
+Concrete / metal / glass / fabric.
+
+### Football pitch
+
+Grass.
+
+### Fences
+
+Metal.
+
+### Sidewalks
+
+Concrete / paving.
+
+Materials should reinforce the object.
+
+---
+
+# 18. ENVIRONMENTAL DETAIL
+
+Use environmental props intelligently.
+
+Examples:
+
+* streetlights
+* signs
+* benches
+* trash bins
+* fences
+* trees
+* bushes
+* parked objects
+* vending machines
+* benches
+* doors
+* windows
+* railings
+* utility boxes
+* banners
+
+Do not place hundreds of unnecessary objects.
+
+Every object should contribute to the environment.
+
+---
+
+# 19. NPC POPULATION
+
+The town must not feel abandoned.
+
+Create a lightweight NPC population.
+
+NPCs can:
+
+* walk
+* stand
+* talk
+* sit
+* watch football
+* gather near shops
+* practice football
+* walk around the stadium
+
+They do not need complex AI yet.
+
+Prioritize:
+
+**visual life + performance.**
+
+Use distance-based simulation where possible.
+
+---
+
+# 20. PLAYER SPAWN
+
+Do NOT spawn the player directly into the middle of the football pitch.
+
+The normal player experience should be:
+
+```text
+JOIN
+ ↓
+TOWN
+ ↓
+SPAWN
+ ↓
+EXPLORE
+ ↓
+TRAIN
+ ↓
+ENTER STADIUM
+ ↓
+PLAY
+```
+
+The town should be the player's home environment.
+
+---
+
+# 21. VISUAL LANDMARKS
+
+Create memorable landmarks.
+
+At minimum:
+
+* town center
+* training stadium
+* main stadium
+* training facility
+* street football area
+
+Players should be able to visually understand where they are.
+
+Avoid making every area look identical.
+
+---
+
+# 22. SUPERNATURAL VISUAL IDENTITY
+
+The supernatural aspect should be present, but controlled.
+
+Do NOT turn the entire map into a fantasy world.
+
+Football remains the foundation.
+
+Use supernatural details subtly:
+
+* glowing symbols
+* unusual energy sources
+* mysterious structures
+* technique training equipment
+* subtle particles
+* supernatural posters
+* strange markings
+* special training areas
+
+The world should feel like a normal football society where supernatural football exists.
+
+---
+
+# 23. TECHNIQUE VISUALS
+
+Techniques need to look significantly better than normal football actions.
+
+When a technique activates:
+
+```text
+PLAYER ANIMATION
+      ↓
+ENERGY BUILDUP
+      ↓
+VFX
+      ↓
+BALL EFFECT
+      ↓
+MOVEMENT / TRAIL
+      ↓
+IMPACT
+```
+
+Use:
+
+* particles
+* trails
+* beams where appropriate
+* impact effects
+* controlled lighting
+* animation
+* camera movement
+* sound effects
+
+Effects should be short, readable and satisfying.
+
+---
+
+# 24. CAMERA
+
+Improve the gameplay camera.
+
+It should feel like a football game rather than the default Roblox camera.
+
+Consider:
+
+* appropriate follow distance
+* smooth movement
+* ball awareness
+* controlled zoom
+* match camera
+* technique camera effects
+* goal camera moment
+* spectator camera
+
+Do not make the camera disorienting.
+
+---
+
+# 25. GOAL PRESENTATION
+
+Goals should feel important.
+
+When a goal occurs:
+
+1. detect goal
+2. stop/reset play appropriately
+3. update scoreboard
+4. show goal feedback
+5. play appropriate audio
+6. provide controlled camera emphasis
+7. display scorer
+8. resume match
+
+The moment should feel satisfying without taking control away for too long.
+
+---
+
+# 26. UI REBUILD
+
+The current UI also looks like a prototype.
+
+Do NOT simply keep the existing UI and change colors.
+
+Redesign it as a cohesive anime sports RPG interface.
+
+---
+
+# 27. HUD
+
+Create a clean HUD.
+
+The HUD should have clear hierarchy.
+
+Show:
+
+* player name
+* level
+* XP
+* stamina
+* Mythic Energy
+* equipped techniques
+* technique cooldown
+* match score
+* match timer
+
+Do not cover large portions of the screen.
+
+The football field must remain visible.
+
+---
+
+# 28. TECHNIQUE BAR
+
+Redesign the technique bar.
+
+Instead of plain boxes like:
+
+```text
+Q
+E
+R
+T
+```
+
+create visually polished ability cards.
+
+Each should show:
+
+* icon
+* technique name
+* key
+* energy cost
+* cooldown
+* availability state
+
+Use visual states:
+
+* ready
+* charging
+* cooldown
+* insufficient energy
+* locked
+
+---
+
+# 29. SCOREBOARD
+
+The scoreboard should look like a real sports broadcast interface.
+
+Display:
+
+```text
+TEAM A       2 — 1       TEAM B
+
+             07:42
+```
+
+Make it compact.
+
+Avoid oversized floating boxes unless intentionally designed.
+
+---
+
+# 30. PLAYER CARD
+
+Make the player card feel premium.
+
+Include:
+
+* avatar
+* name
+* position
+* overall
+* level
+* attributes
+* techniques
+* mastery
+* career statistics
+
+The player card should feel like an important RPG object.
+
+---
+
+# 31. MENUS
+
+Use a consistent design system across:
+
+* Player
+* Techniques
+* Training
+* Objectives
+* Inventory
+* Settings
+* Match
+* Spectator
+
+All menus should feel like they belong to the same game.
+
+---
+
+# 32. TYPOGRAPHY
+
+Choose a consistent readable font system.
+
+Use:
+
+* strong display typography for titles
+* clean readable typography for information
+* consistent spacing
+* consistent button shapes
+* consistent icon treatment
+
+Do not use random fonts across different interfaces.
+
+---
+
+# 33. UI ANIMATION
+
+Use subtle UI animation:
+
+* hover
+* click
+* opening
+* closing
+* level-up
+* technique unlock
+* objective completion
+* match result
+
+Avoid excessive animation.
+
+---
+
+# 34. LOADING SCREEN
+
+Create a proper Mythic Strikers loading screen.
+
+It should communicate the game's identity immediately.
+
+Include:
+
+* logo
+* football imagery/abstract original artwork
+* loading indicator
+* subtle animation
+* tips
+
+Do not use a generic Roblox loading screen.
+
+---
+
+# 35. EMPTY WORLD PROBLEM
+
+This is critical.
+
+Do NOT create a massive map and leave most of it empty.
+
+Instead:
+
+```text
+SMALLER WORLD
++
+HIGH DETAIL
++
+CLEAR LANDMARKS
++
+ACTIVITY
++
+NPCs
++
+INTERACTION
+```
+
+is preferred over:
+
+```text
+HUGE MAP
++
+EMPTY LAND
++
+RANDOM BUILDINGS
+```
+
+---
+
+# 36. PROCEDURAL BUILDING QUALITY
+
+If the environment is generated through Lua/Luau:
+
+Do not generate everything from identical cubes.
+
+Create reusable construction functions for:
+
+* houses
+* apartments
+* shops
+* streetlights
+* fences
+* trees
+* benches
+* stadium structures
+* signs
+* windows
+* doors
+
+Use variation parameters:
+
+```text
+building width
+building height
+roof type
+window layout
+material
+color
+balcony
+entrance
+decoration
+```
+
+This allows procedural generation while avoiding repetitive geometry.
+
+---
+
+# 37. MODELING STRATEGY
+
+Where Roblox-native geometry is sufficient:
+
+Use Parts / MeshParts / Terrain appropriately.
+
+Where simple geometry looks too primitive:
+
+Use more detailed MeshParts or suitable Roblox-compatible assets.
+
+Do not depend on random free assets that could introduce:
+
+* malware/scripts
+* poor optimization
+* inconsistent art style
+* copyright problems
+
+Any external assets must be reviewed before use.
+
+---
+
+# 38. PERFORMANCE
+
+Visual quality must not destroy performance.
+
+Target:
+
+* PC
+* lower-end mobile
+* mid-range mobile
+
+Use:
+
+* Instance Streaming
+* reasonable part counts
+* reusable assets
+* object pooling
+* LOD where appropriate
+* optimized particles
+* limited transparency
+* limited dynamic lights
+* efficient NPC simulation
+
+Do not place hundreds of unique high-cost objects everywhere.
+
+---
+
+# 39. QUALITY SETTINGS
+
+Prepare a scalable graphics system.
+
+Quality levels:
+
+```text
+LOW
+MEDIUM
+HIGH
+ULTRA
+```
+
+Control:
+
+* particles
+* trails
+* VFX
+* lighting
+* post-processing
+* NPC detail
+* environmental detail where appropriate
+
+Low-end players should still get the complete game.
+
+They should simply receive reduced visual complexity.
+
+---
+
+# 40. ORIGINAL ART DIRECTION
+
+Do not copy existing anime games.
+
+Create:
+
+* original stadium architecture
+* original town
+* original uniforms
+* original logos
+* original UI
+* original VFX
+* original techniques
+* original environmental designs
+
+The inspiration should come from the **genre**, not from copying a particular franchise.
+
+---
+
+# 41. CURRENT STADIUM REPLACEMENT
+
+The existing stadium builder should be treated as a prototype/blockout.
+
+Inspect:
+
+`src/Workspace/Stadium/StadiumBuilder.lua`
+
+Determine whether it should be:
+
+1. substantially refactored,
+2. replaced,
+3. or expanded.
+
+Do not preserve poor visual geometry merely because it already exists.
+
+The final stadium should have:
+
+* real proportions
+* pitch
+* stands
+* entrances
+* structural architecture
+* lighting
+* banners
+* scoreboard
+* technical areas
+* player tunnel
+* surrounding environment
+
+---
+
+# 42. REMOVE DEBUG VISUALS
+
+Search the project for:
+
+* debug Parts
+* test colors
+* placeholder geometry
+* development labels
+* test platforms
+* temporary visual markers
+* random neon objects
+
+Remove or hide them from the production environment.
+
+Keep useful debug tools available behind a development/debug configuration.
+
+---
+
+# 43. DATASTORE ERROR
+
+The current Studio Output shows:
+
+`StudioAccessToApisNotAllowed`
+
+and:
+
+`Cannot write to DataStore from studio if API access is not enabled.`
+
+This is a separate development configuration issue.
+
+Do not confuse this with the visual problem.
+
+Handle Studio DataStore failure gracefully.
+
+The game should not spam errors when Studio API access is disabled.
+
+If appropriate, make the DataStore service detect Studio/API availability and clearly log:
+
+```text
+[DataService] Studio DataStore access unavailable.
+[DataService] Running with temporary session data.
+```
+
+Do not silently pretend that data was permanently saved.
+
+Production DataStore behavior must remain secure.
+
+---
+
+# 44. SCRIPT EXECUTION
+
+Verify that the visual/world builders actually execute.
+
+Inspect:
+
+* `.server.luau`
+* `.client.luau`
+* ModuleScripts
+* `require()` chains
+* Rojo mappings
+* Workspace initialization
+
+Do not assume a module automatically runs.
+
+Make sure:
+
+```text
+ServerMain
+    ↓
+World initialization
+    ↓
+Stadium
+    ↓
+Town
+    ↓
+Services
+```
+
+and:
+
+```text
+ClientMain
+    ↓
+Controllers
+    ↓
+UI
+    ↓
+Camera
+    ↓
+Input
+```
+
+are correctly initialized.
+
+---
+
+# 45. DO NOT FAKE THE RESULT
+
+Do not tell me:
+
+"Visual rebuild completed"
+
+if the game still consists of:
+
+* flat floors
+* random blocks
+* placeholder buildings
+* empty stadium
+* default UI
+
+Actually inspect the result.
+
+If something cannot be built automatically, explain exactly what remains.
+
+---
+
+# 46. DEVELOPMENT PROCESS
+
+Work in phases.
+
+## PHASE 1 — AUDIT
+
+Inspect the repository.
+
+Identify:
+
+* current world
+* current stadium
+* current UI
+* current scripts
+* current visual systems
+* current startup system
+
+Do not modify yet.
+
+---
+
+## PHASE 2 — CLEANUP
+
+Remove:
+
+* placeholder geometry
+* random test objects
+* obsolete builders
+* debug visuals
+
+Only remove objects confirmed to be development-only.
+
+---
+
+## PHASE 3 — WORLD BLOCKOUT
+
+Build the new town layout.
+
+Focus on:
+
+* roads
+* districts
+* landmarks
+* stadium locations
+* training area
+* spawn
+
+---
+
+## PHASE 4 — WORLD DETAIL
+
+Add:
+
+* buildings
+* props
+* vegetation
+* signage
+* NPC areas
+* football elements
+
+---
+
+## PHASE 5 — STADIUM
+
+Build the polished competitive stadium.
+
+---
+
+## PHASE 6 — TRAINING COMPLEX
+
+Build the training environment.
+
+---
+
+## PHASE 7 — LIGHTING
+
+Tune the entire environment.
+
+---
+
+## PHASE 8 — UI
+
+Rebuild the HUD and menus.
+
+---
+
+## PHASE 9 — VFX
+
+Improve supernatural techniques and football feedback.
+
+---
+
+## PHASE 10 — AUDIO
+
+Add environmental and gameplay audio.
+
+---
+
+## PHASE 11 — PERFORMANCE
+
+Optimize the complete environment.
+
+---
+
+## PHASE 12 — PLAYTEST
+
+Run the game.
+
+Walk through:
+
+* spawn
+* town
+* training
+* stadium
+* match
+* UI
+* techniques
+
+Check every area visually.
+
+---
+
+# 47. VISUAL ACCEPTANCE TEST
+
+Do NOT consider the rebuild complete until these questions can be answered YES:
+
+### WORLD
+
+Does the player feel like they are inside a real town?
+
+### STADIUM
+
+Does the stadium look like an actual football venue?
+
+### TRAINING
+
+Does the training area look intentional and functional?
+
+### MATERIALS
+
+Do surfaces have appropriate materials?
+
+### LIGHTING
+
+Does lighting create atmosphere?
+
+### NPCs
+
+Does the town feel populated?
+
+### UI
+
+Does the interface feel like a finished anime sports RPG?
+
+### TECHNIQUES
+
+Do supernatural techniques visually stand out?
+
+### CAMERA
+
+Does gameplay feel cinematic without becoming annoying?
+
+### COHESION
+
+Do all visual elements look like they belong to the same game?
+
+### PERFORMANCE
+
+Does the game remain playable on lower-end devices?
+
+### ORIGINALITY
+
+Does the game have its own visual identity?
+
+---
+
+# 48. THE TARGET
+
+The final visual progression should be:
+
+```text
+CURRENT
+
+┌─────────────────────────────────┐
+│ Flat field                      │
+│ Random colored blocks           │
+│ Basic stadium                   │
+│ Empty environment               │
+│ Debug-like UI                   │
+└─────────────────────────────────┘
+
+                ↓
+
+TARGET
+
+┌─────────────────────────────────┐
+│        MYTHIC STRIKERS          │
+│                                 │
+│ Living football town            │
+│ Detailed stadium                │
+│ Training complex                │
+│ NPC population                  │
+│ Streets / shops / buildings     │
+│ Football culture everywhere     │
+│ Polished anime-sports UI        │
+│ Cinematic techniques            │
+│ Strong lighting                 │
+│ Environmental storytelling      │
+└─────────────────────────────────┘
+```
+
+---
+
+# 49. MOST IMPORTANT RULE
+
+Do not interpret:
+
+> "Make the game look better"
+
+as:
+
+> "Add more Parts."
+
+Interpret it as:
+
+> **Create a complete visual art direction, environment hierarchy, architecture, lighting system, UI design, VFX presentation and atmosphere that makes Mythic Strikers look like a finished game rather than a technical prototype.**
+
+---
+
+# 50. FINAL INSTRUCTION
+
+Start by auditing the existing project.
+
+Do not immediately code.
+
+First report:
+
+```text
+CURRENT VISUAL SYSTEMS
+CURRENT WORLD
+CURRENT STADIUM
+CURRENT UI
+CURRENT LIGHTING
+CURRENT VFX
+CURRENT SCRIPT EXECUTION
+CURRENT PLACEHOLDER CONTENT
+CURRENT PROBLEMS
+PROPOSED VISUAL ARCHITECTURE
+FILES THAT WILL CHANGE
+```
+
+Then begin the rebuild.
+
+Keep all working football gameplay.
+
+Do not rebuild functioning systems unnecessarily.
+
+The final result should make a player joining the game immediately think:
+
+**"This is a real game."**
+
+not:
+
+**"This is a Roblox Studio prototype."**
+
+Build the visual foundation that Mythic Strikers can continue expanding throughout Updates 1.1, 1.2, 1.3, 1.4 and beyond.
+# 51. FINAL DIRECTIVE — TAKE OWNERSHIP OF THE COMPLETE LAUNCH BUILD
+
+From this point onward, treat this project as a **complete game production task**, not a coding demonstration.
+
+I want you to take responsibility for completing the remaining work required to make **Mythic Strikers ready for its first public Roblox launch**.
+
+Do not stop at the visual rebuild.
+
+Do not only fix the stadium.
+
+Do not only write scripts.
+
+Do not only create UI.
+
+You are responsible for connecting the entire experience into one coherent, polished game.
+
+---
+
+# COMPLETE THE GAME
+
+Finish whatever is required across:
+
+* UI
+* gameplay
+* game flow
+* player progression
+* football mechanics
+* techniques
+* VFX
+* SFX
+* animations
+* buildings
+* environment
+* town
+* stadium
+* training facilities
+* NPCs
+* menus
+* loading screens
+* player cards
+* match flow
+* lobby
+* matchmaking foundation
+* spectator system
+* objectives
+* rewards
+* DataStore
+* settings
+* audio
+* assets
+* optimization
+* security
+* monetization
+* game passes
+* developer products where appropriate
+* onboarding
+* tutorials
+* notifications
+* error handling
+* mobile controls
+* PC controls
+* controller support where practical
+* overall UX
+* launch polish
+
+If a necessary system does not currently exist, build it.
+
+If an existing system is broken, repair it.
+
+If an existing system is poorly structured, refactor it.
+
+If an existing implementation is only a prototype, turn it into a production-quality implementation.
+
+---
+
+# 52. COMPLETE GAME FLOW
+
+Create a coherent player journey.
+
+The game should flow naturally:
+
+```text
+ROBLOX JOIN
+      ↓
+LOADING SCREEN
+      ↓
+PLAYER INITIALIZATION
+      ↓
+SPAWN IN TOWN
+      ↓
+ONBOARDING / INTRODUCTION
+      ↓
+EXPLORE
+      ↓
+TRAIN
+      ↓
+LEARN TECHNIQUES
+      ↓
+PLAYER PROGRESSION
+      ↓
+ENTER MATCH
+      ↓
+5v5 GAMEPLAY
+      ↓
+MATCH RESULT
+      ↓
+XP / REWARDS
+      ↓
+PLAYER CARD / PROGRESSION
+      ↓
+RETURN TO TOWN
+      ↓
+NEW OBJECTIVES
+      ↓
+REPEAT
+```
+
+The transition between systems should feel intentional.
+
+Do not make the player wonder:
+
+> "What am I supposed to do now?"
+
+---
+
+# 53. ONBOARDING
+
+Create a short onboarding experience for new players.
+
+Teach:
+
+* movement
+* sprinting
+* ball control
+* passing
+* shooting
+* techniques
+* entering a match
+* objectives
+* progression
+
+Do not make the tutorial long.
+
+The player should be playing football quickly.
+
+Use contextual instructions rather than walls of text.
+
+---
+
+# 54. COMPLETE UI SYSTEM
+
+Create a unified UI system for the entire game.
+
+Required interfaces:
+
+## Main HUD
+
+* player name
+* level
+* XP
+* stamina
+* Mythic Energy
+* techniques
+* objective indicator
+
+## Main Menu
+
+Include access to:
+
+* Play
+* Player
+* Techniques
+* Training
+* Objectives
+* Inventory
+* Settings
+* Shop
+
+## Player
+
+* player card
+* attributes
+* statistics
+* position
+* level
+* progression
+
+## Techniques
+
+* owned techniques
+* equipped techniques
+* locked techniques
+* mastery
+* descriptions
+* requirements
+
+## Training
+
+* available training activities
+* training rewards
+* progress
+
+## Objectives
+
+* daily/session objectives
+* progress
+* rewards
+
+## Match
+
+* team
+* score
+* timer
+* techniques
+* player state
+
+## Results
+
+* win/loss
+* performance
+* XP
+* rewards
+* statistics
+
+## Shop
+
+* cosmetics
+* effects
+* emotes
+* appropriate convenience items
+
+## Settings
+
+* graphics
+* audio
+* controls
+* camera
+* accessibility where practical
+
+## Loading
+
+* branded loading screen
+* progress indicator
+* useful gameplay tips
+
+---
+
+# 55. UI DESIGN SYSTEM
+
+Every interface must share:
+
+* typography
+* spacing
+* icons
+* panels
+* buttons
+* colors
+* animations
+* sound feedback
+
+Do not build every UI screen independently.
+
+Create reusable UI components.
+
+---
+
+# 56. BUILDINGS AND ENVIRONMENT
+
+Complete the actual town.
+
+Do not leave placeholder buildings.
+
+Create:
+
+* houses
+* apartments
+* shops
+* restaurants
+* training buildings
+* academy-style buildings
+* stadium structures
+* parks
+* streets
+* sidewalks
+* alleys
+* football courts
+* plazas
+* decorative structures
+* landmarks
+
+Buildings should have believable:
+
+* doors
+* windows
+* entrances
+* roofs
+* signage
+* lighting
+* materials
+* surrounding props
+
+Some buildings may be decorative.
+
+Important buildings should be interactive.
+
+---
+
+# 57. IMPORTANT LOCATIONS
+
+Create clear locations for:
+
+* Spawn
+* Town Center
+* Training Facility
+* Technique Academy
+* Training Stadium
+* Main Stadium
+* Shop
+* Social area
+* Street Football area
+
+Future locations can be represented as locked/mysterious areas.
+
+Do not build unfinished future systems.
+
+---
+
+# 58. ASSET STRATEGY
+
+Use appropriate Roblox-compatible assets where they improve quality.
+
+However:
+
+* avoid random low-quality free models
+* avoid untrusted scripts
+* avoid malicious models
+* avoid inconsistent art styles
+* avoid copyrighted assets
+* inspect external models before using them
+
+Prefer:
+
+* procedural construction
+* clean MeshParts
+* simple custom geometry
+* reusable original assets
+
+Every asset must fit the Mythic Strikers visual direction.
+
+---
+
+# 59. VFX
+
+Create a reusable VFX architecture.
+
+Support:
+
+* technique activation
+* ball trails
+* shot effects
+* pass effects
+* dribble effects
+* defensive effects
+* goalkeeper effects
+* impact effects
+* goal effects
+* level-up effects
+* unlock effects
+* awakening-ready architecture
+
+VFX should be:
+
+* performant
+* readable
+* original
+* reusable
+* scalable by graphics quality
+
+---
+
+# 60. SFX / AUDIO
+
+Complete the audio experience.
+
+Include appropriate:
+
+* UI click
+* menu open
+* menu close
+* button hover
+* ball kick
+* ball impact
+* pass
+* tackle
+* goal
+* technique activation
+* technique impact
+* level-up
+* reward
+* match start
+* match end
+* victory
+* defeat
+* town ambience
+* stadium ambience
+
+Use original/licensed audio only.
+
+Do not use copyrighted music or sounds without appropriate rights.
+
+---
+
+# 61. ANIMATIONS
+
+Create or integrate appropriate animations for:
+
+* idle
+* walk
+* run
+* sprint
+* dribble
+* pass
+* shoot
+* tackle
+* block
+* goalkeeper action
+* technique activation
+* celebration
+* defeat
+* victory
+
+Animation should make the football mechanics feel substantially better.
+
+---
+
+# 62. GAME PASSES / MONETIZATION
+
+Implement Roblox monetization carefully.
+
+Possible Game Pass categories:
+
+* cosmetic effects
+* special emotes
+* cosmetic player-card themes
+* cosmetic titles
+* cosmetic goal celebrations
+* cosmetic trails
+* cosmetic stadium effects
+* additional non-competitive convenience
+
+Do NOT make competitive football power directly purchasable.
+
+Do NOT sell:
+
+* guaranteed goals
+* stronger shots
+* stronger tackles
+* unfair speed
+* unlimited energy
+* direct competitive stat advantages
+
+The competitive experience should remain skill-focused.
+
+Create a clean Shop/Pass presentation.
+
+If actual Game Pass IDs do not exist yet, build the architecture around configurable IDs rather than inventing IDs.
+
+Example configuration:
+
+```lua
+GamePasses = {
+    Premium = 0,
+    CosmeticEffects = 0,
+    SpecialEmotes = 0,
+}
+```
+
+Clearly mark IDs that require replacement.
+
+---
+
+# 63. DEVELOPER PRODUCTS
+
+If appropriate, create a configurable Developer Product system for non-destructive purchases.
+
+Server must validate purchases through Roblox's proper purchase-processing flow.
+
+Never award products solely because a client claims they purchased something.
+
+Never trust client-side currency transactions.
+
+---
+
+# 64. ECONOMY
+
+Create a basic controlled economy.
+
+Possible currencies:
+
+* Coins
+* Training resources
+* Technique resources
+
+Keep the economy understandable.
+
+Do not introduce unnecessary currencies.
+
+All currency changes must happen server-side.
+
+---
+
+# 65. REWARDS
+
+Reward meaningful gameplay.
+
+Examples:
+
+* XP
+* coins
+* technique mastery
+* training resources
+* cosmetics
+* titles
+* achievements
+
+Do not create reward loops that encourage exploitative behavior.
+
+---
+
+# 66. ACHIEVEMENTS
+
+Create a lightweight achievement foundation.
+
+Examples:
+
+```text
+FIRST GOAL
+FIRST ASSIST
+FIRST WIN
+FIRST TECHNIQUE
+TECHNIQUE MASTER
+10 MATCHES
+100 PASSES
+FIRST SAVE
+```
+
+Achievements should reinforce gameplay rather than create tedious chores.
+
+---
+
+# 67. PLAYER PROFILE
+
+Create a complete player profile system.
+
+Store:
+
+* name
+* level
+* XP
+* position
+* attributes
+* techniques
+* mastery
+* statistics
+* achievements
+* cosmetics
+* settings
+* objectives
+* currency
+
+Use a versioned schema.
+
+---
+
+# 68. DATASTORE PRODUCTION SAFETY
+
+Make DataStore handling production-ready.
+
+Implement:
+
+* safe loading
+* retries
+* session protection where appropriate
+* safe saving
+* shutdown saving
+* schema version
+* migration foundation
+* corruption protection
+* sensible defaults
+
+Do not save constantly.
+
+Do not duplicate writes.
+
+Do not allow clients to modify persistent data.
+
+---
+
+# 69. ERROR HANDLING
+
+The game should fail gracefully.
+
+Handle:
+
+* DataStore unavailable
+* player leaving during match
+* match server shutdown
+* invalid remote calls
+* missing assets
+* failed UI initialization
+* failed teleport
+* missing configuration
+* unexpected player state
+
+Do not spam Output with avoidable errors.
+
+Use clear categorized logging during development.
+
+---
+
+# 70. MOBILE EXPERIENCE
+
+This is important.
+
+Support mobile players.
+
+Create:
+
+* mobile movement controls
+* sprint button
+* pass button
+* shoot button
+* technique buttons
+* contextual interaction buttons
+
+Controls must not cover the entire screen.
+
+Buttons should be appropriately sized for touch.
+
+---
+
+# 71. PC EXPERIENCE
+
+Support keyboard/mouse.
+
+Provide configurable controls where practical.
+
+Example:
+
+```text
+WASD
+Sprint
+Pass
+Shoot
+Tackle
+Technique 1
+Technique 2
+Technique 3
+Technique 4
+```
+
+Do not hard-code controls throughout unrelated scripts.
+
+Use a centralized input configuration.
+
+---
+
+# 72. CONTROLLER FOUNDATION
+
+Where practical, prepare the input architecture for gamepads.
+
+Do not let controller support break keyboard/mobile.
+
+---
+
+# 73. MATCHMAKING / LOBBY
+
+Make the 5v5 flow reliable.
+
+Handle:
+
+* joining
+* leaving
+* team assignment
+* ready state if appropriate
+* countdown
+* match start
+* match end
+* player disconnect
+* empty team
+* match cancellation
+* return to town
+
+Do not let players become permanently stuck in matchmaking.
+
+---
+
+# 74. SPECTATOR EXPERIENCE
+
+Make spectating feel intentional.
+
+Include:
+
+* camera controls
+* player switching
+* scoreboard
+* timer
+* team information
+* exit spectator
+
+Do not allow spectators to affect gameplay.
+
+---
+
+# 75. PERFORMANCE
+
+Optimize the complete game.
+
+Check:
+
+* script performance
+* memory
+* part counts
+* particle counts
+* remote traffic
+* NPC simulation
+* physics
+* UI
+* VFX
+* rendering
+
+Use profiling where appropriate.
+
+The game must remain playable on reasonable lower-end devices.
+
+---
+
+# 76. SECURITY AUDIT
+
+Before launch, audit every RemoteEvent and RemoteFunction.
+
+Check:
+
+* ball actions
+* passing
+* shooting
+* tackling
+* techniques
+* energy
+* cooldowns
+* XP
+* currency
+* rewards
+* inventory
+* purchases
+* match results
+* player statistics
+
+The client may request an action.
+
+The server decides whether that action is valid.
+
+---
+
+# 77. LAUNCH CHECKLIST
+
+Before declaring the game launch-ready, verify:
+
+```text
+[ ] Game starts
+[ ] Loading works
+[ ] Player spawns correctly
+[ ] Town loads
+[ ] Buildings load
+[ ] NPCs work
+[ ] Training works
+[ ] Ball works
+[ ] Passing works
+[ ] Shooting works
+[ ] Goals work
+[ ] 5v5 works
+[ ] Match timer works
+[ ] Scoreboard works
+[ ] Match results work
+[ ] XP works
+[ ] Leveling works
+[ ] Techniques work
+[ ] Mastery works
+[ ] Player card works
+[ ] Objectives work
+[ ] Rewards work
+[ ] Data persistence works
+[ ] UI works
+[ ] Mobile controls work
+[ ] PC controls work
+[ ] Spectator works
+[ ] Audio works
+[ ] VFX work
+[ ] Animations work
+[ ] Shop works
+[ ] Game Pass architecture works
+[ ] Security audit completed
+[ ] Performance pass completed
+[ ] No critical errors
+[ ] No obvious placeholder content
+[ ] No broken UI
+[ ] No unfinished core systems
+```
+
+---
+
+# 78. DO NOT CALL IT COMPLETE TOO EARLY
+
+"Code compiles" is NOT launch-ready.
+
+"Game loads" is NOT launch-ready.
+
+"Stadium appears" is NOT launch-ready.
+
+"Match starts" is NOT launch-ready.
+
+The game should be treated as launch-ready only when the complete player journey works.
+
+---
+
+# 79. FINAL QUALITY TEST
+
+Play the game as if you were a completely new player.
+
+Do not use developer knowledge.
+
+Ask:
+
+### First impression
+
+Does it immediately look like a real game?
+
+### First minute
+
+Do I understand what I am supposed to do?
+
+### First five minutes
+
+Have I played football?
+
+### First match
+
+Does football feel satisfying?
+
+### First technique
+
+Does the supernatural system feel exciting?
+
+### First reward
+
+Does progression feel meaningful?
+
+### After the match
+
+Do I understand what I can do next?
+
+### After leaving
+
+Does my progression persist?
+
+### Visual quality
+
+Does anything still look obviously like placeholder/debug content?
+
+### Mobile
+
+Can a mobile player actually play?
+
+### Multiplayer
+
+Can players reliably complete matches?
+
+---
+
+# 80. IF SOMETHING IS MISSING
+
+If you discover a system that is required for the game to function properly but was not explicitly mentioned in this prompt:
+
+**BUILD IT.**
+
+Do not stop and say:
+
+> "This wasn't in the prompt."
+
+Use the game's intended design and existing architecture to determine the appropriate implementation.
+
+Examples include:
+
+* missing service
+* missing controller
+* missing UI state
+* missing transition
+* missing configuration
+* missing validation
+* missing cleanup
+* missing loading state
+* missing error handling
+
+Use reasonable engineering judgment.
+
+---
+
+# 81. DO NOT OVERENGINEER
+
+Complete the game, but do not turn Update 1.0 into an unnecessarily massive engineering project.
+
+Prefer:
+
+**simple + reliable + polished**
+
+over:
+
+**complex + fragile + unfinished**
+
+---
+
+# 82. FUTURE-PROOF THE ARCHITECTURE
+
+While completing launch preparation, maintain extension points for:
+
+* Update 1.1 world expansion
+* Update 1.2 technique expansion
+* Update 1.3 RPG progression
+* Update 1.4 competitive/social systems
+* Update 1.5 Career Mode
+* Update 1.6 career simulation
+* Update 2.0 major content
+
+Do not implement those updates now.
+
+Build the foundation so they can be added without rewriting the entire game.
+
+---
+
+# 83. FINAL RESPONSIBILITY
+
+From this point forward, treat the project as:
+
+**"Finish the game."**
+
+not:
+
+**"Complete a few requested scripts."**
+
+Take ownership of the integration.
+
+If the UI is missing, build it.
+
+If the world is empty, build it.
+
+If buildings are missing, build them.
+
+If VFX are missing, build them.
+
+If the game flow is broken, fix it.
+
+If the match system needs integration, integrate it.
+
+If the player progression needs UI, build it.
+
+If the assets are missing, create appropriate original/procedural assets or clean Roblox-compatible assets.
+
+If the game needs launch polish, add it.
+
+If something is obviously unfinished, fix it.
+
+---
+
+# 84. FINAL RULE
+
+Do not leave Mythic Strikers looking like the current prototype.
+
+The final Update 1.0 should feel like a **cohesive, polished, playable Roblox game that is ready for its first public release**.
+
+The player should be able to:
+
+**JOIN → EXPLORE → TRAIN → LEARN → COMPETE → PROGRESS → CUSTOMIZE → RETURN**
+
+with no major broken links in the experience.
+
+Build the complete launch experience while respecting the existing working code and the staged roadmap.
+
+When finished, provide a concise production report containing:
+
+```text
+SYSTEMS COMPLETED
+SYSTEMS REPAIRED
+SYSTEMS STILL INCOMPLETE
+FILES CREATED
+FILES MODIFIED
+KNOWN LIMITATIONS
+TESTING PERFORMED
+SECURITY CHECKS
+PERFORMANCE CHECKS
+LAUNCH READINESS
+```
+
+Do not claim something is complete if it is not actually implemented and tested.

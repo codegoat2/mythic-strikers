@@ -17,7 +17,9 @@
           "$className": "Folder",
           "Constants":         { "$path": "src/ReplicatedStorage/Shared/Config/Constants.lua" },
           "DefaultAttributes": { "$path": "src/ReplicatedStorage/Shared/Config/DefaultAttributes.lua" },
-          "MatchConfig":       { "$path": "src/ReplicatedStorage/Shared/Config/MatchConfig.lua" }
+          "MatchConfig":       { "$path": "src/ReplicatedStorage/Shared/Config/MatchConfig.lua" },
+          "Palette":           { "$path": "src/ReplicatedStorage/Shared/Config/Palette.lua" },
+          "AssetRegistry":     { "$path": "src/ReplicatedStorage/Shared/Config/AssetRegistry.lua" }
         },
 
         "Types": {
@@ -36,8 +38,21 @@
     "ServerScriptService": {
       "$className": "ServerScriptService",
 
-      "ServerMain": {
-        "$path": "src/ServerScriptService/ServerMain.server.lua"
+        "ServerMain": {
+          "$path": "src/ServerScriptService/ServerMain.server.lua"
+        },
+
+        "WeatherService": {
+          "$path": "src/ServerScriptService/WeatherService.server.lua"
+        },
+
+      "World": {
+        "$className": "Folder",
+        "BuildKit":      { "$path": "src/ServerScriptService/World/BuildKit.lua" },
+        "LightingService": { "$path": "src/ServerScriptService/World/LightingService.lua" },
+        "NPCService":    { "$path": "src/ServerScriptService/World/NPCService.lua" },
+        "WorldBuilder":  { "$path": "src/ServerScriptService/World/WorldBuilder.server.lua" },
+        "StadiumBuilder":{ "$path": "src/ServerScriptService/World/StadiumBuilder.server.lua" }
       },
 
       "Services": {
@@ -50,9 +65,7 @@
         "ShopService":        { "$path": "src/ServerScriptService/Services/ShopService.lua" },
         "AntiExploitService": { "$path": "src/ServerScriptService/Services/AntiExploitService.lua" },
         "ObjectiveService":   { "$path": "src/ServerScriptService/Services/ObjectiveService.lua" },
-        "TrainingBuilder":    { "$path": "src/ServerScriptService/Services/TrainingBuilder.lua" },
-        "LobbyBuilder":       { "$path": "src/ServerScriptService/Services/LobbyBuilder.server.lua" },
-        "StadiumBuilder":     { "$path": "src/Workspace/Stadium/StadiumBuilder.server.lua" }
+        "TrainingBuilder":    { "$path": "src/ServerScriptService/Services/TrainingBuilder.lua" }
       }
     },
 
@@ -82,7 +95,8 @@
           "FootballController": { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/FootballController.lua" },
           "UIController":       { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/UIController.lua" },
           "LobbyController":    { "$path": "src/StarterPlayer/StarterPlayerScripts/Controllers/LobbyController.lua" }
-        }
+        },
+        "ClientAssetRegistry": { "$path": "src/StarterPlayer/StarterPlayerScripts/ClientAssetRegistry.lua" }
       }
     },
 

@@ -107,6 +107,8 @@ local _lastProfile = {}
 -- ─────────────────────────────────────────────
 -- Remotes.Get() already has internal WaitForChild logic,
 -- but we do an explicit wait here to make boot sequencing clear.
+-- Kept short on purpose: the loading screen must not sit here for 15s. If the
+-- remotes are not up by now, we continue and the overlay still comes down.
 local function waitForServer(timeout: number): boolean
 	local start = tick()
 	while tick() - start < timeout do
@@ -117,9 +119,9 @@ local function waitForServer(timeout: number): boolean
 	return false
 end
 
-local serverReady = waitForServer(15)
+local serverReady = waitForServer(6)
 if not serverReady then
-	warn("[ClientMain] Server remotes did not appear within 15 seconds. Proceeding anyway.")
+	warn("[ClientMain] Server remotes did not appear within 6 seconds. Proceeding anyway.")
 end
 
 print("[ClientMain] Server remotes available. Booting controllers...")
@@ -161,6 +163,9 @@ end)
 -- Back-inject FootballController into UIController now it exists
 -- (UIController uses it for charge ratio display)
 UIController._footballController = FootballController  -- direct field injection
+
+-- Give UIController the camera so goals and saves can shake it.
+UIController.SetCameraController(CameraController)
 
 -- ─────────────────────────────────────────────
 -- Step 6 — ShopUI
@@ -205,33 +210,44 @@ task.spawn(function()
 		hideLoadingScreen(_loadingScreen)
 	end
 	task.spawn(function()
-		task.wait(12)
+		task.wait(8)
 		if not dismissed then
 			warn("[ClientMain] Loading deadline reached — forcing dismiss.")
 		end
 		dismiss()
 	end)
 
-	-- Wait for character to be present before querying.
-	-- Bounded: if no character ever spawns we continue with a null profile
-	-- rather than blocking the session behind the overlay.
+	-- The overlay comes down NOW. Every controller is already built, so the
+	-- player can move, look around and see the HUD. The profile is fetched in
+	-- the background and simply fills the card in when it arrives — it must
+	-- never be a reason to keep someone staring at a loading screen.
+	dismiss()
+
+	-- Wait for the character, but only briefly, and only because the profile
+	-- query is more useful once PlayerService has a character to attach to.
 	if not LocalPlayer.Character then
-		local spawnDeadline = tick() + 10
+		local spawnDeadline = tick() + 8
 		while not LocalPlayer.Character and tick() < spawnDeadline do
 			task.wait(0.25)
 		end
-		if not LocalPlayer.Character then
-			warn("[ClientMain] No character after 10s — continuing without profile.")
-		end
 	end
-	task.wait(1)   -- give PlayerService time to load profile
 
-	-- Fetch profile via RemoteFunction
-	local ok, profile = pcall(function()
-		return Remotes.InvokeServer("GetPlayerProfile")
-	end)
+	-- Poll for the profile. PlayerService retries the DataStore up to 3 times,
+	-- so a slow or unavailable store (common in Studio) means the profile is
+	-- briefly nil. Retry a few times rather than giving up after one miss.
+	local profile = nil
+	for attempt = 1, 8 do
+		local ok, result = pcall(function()
+			return Remotes.InvokeServer("GetPlayerProfile")
+		end)
+		if ok and result then
+			profile = result
+			break
+		end
+		task.wait(1.5)
+	end
 
-	if ok and profile then
+	if profile then
 		-- Apply equipped techniques to Football and UI controllers
 		local techs = profile.EquippedTechs or {}
 		FootballController.SetEquippedTechniques(techs)
@@ -259,11 +275,8 @@ task.spawn(function()
 			#techs
 		))
 	else
-		warn("[ClientMain] Failed to load profile: " .. tostring(profile))
+		warn("[ClientMain] Profile unavailable after 8 attempts — continuing without it.")
 	end
-
-	-- Hide loading screen once everything is loaded
-	dismiss()
 end)
 
 -- ─────────────────────────────────────────────
@@ -275,8 +288,10 @@ task.spawn(function()
 		return Remotes.InvokeServer("GetMatchData")
 	end)
 	if ok and matchData then
-		-- Synthesize a MatchStateUpdate so UIController sets itself up
-		Remotes.Get(Constants.Remotes.MatchStateUpdate).OnClientEvent:Fire(matchData)
+		-- Seed the UI. We must NOT call Remotes.Get(...).OnClientEvent:Fire(...)
+		-- here: OnClientEvent is a signal the server owns, and :Fire on it
+		-- throws "Fire is not a valid member of RBXScriptSignal".
+		UIController.ApplyMatchState(matchData)
 		print(string.format(
 			"[ClientMain] Initial match state: %s  Score: %d–%d",
 			matchData.State or "?",

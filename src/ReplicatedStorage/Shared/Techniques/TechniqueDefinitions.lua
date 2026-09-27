@@ -10,11 +10,7 @@
 	  GOALKEEPER: Astral Shield
 
 	All techniques are original Mythic Strikers concepts.
-	Animation / VFX / SFX IDs are string tags — asset IDs are wired
-	to real Roblox assets where possible using built-in effects.
-
-	Data-driven: this file is the authoritative definition source.
-	Never hard-code technique stats inside service logic.
+	Animation / VFX / SFX IDs are mapped in AssetRegistry to real Roblox assets.
 --]]
 
 local T = {
@@ -58,9 +54,9 @@ local Techniques = {
 		Power       = 1.3,
 		Range       = 0,
 		Duration    = 0.6,
-		Animation   = "SolarRoar",
-		VFX         = "VFX_SolarRoar",
-		SFX         = "SFX_FireShot",
+		Animation   = "Dash",
+		VFX         = "MagicBlast",
+		SFX         = "Explosion",
 		Cinematic   = false,
 		Description = "A powerful forward shot surrounded by compressed solar energy.",
 		Requirements = {},
@@ -77,9 +73,9 @@ local Techniques = {
 		Power       = 1.25,
 		Range       = 0,
 		Duration    = 0.5,
-		Animation   = "ThunderFang",
-		VFX         = "VFX_ThunderFang",
-		SFX         = "SFX_LightningShot",
+		Animation   = "Dash",
+		VFX         = "LightningBolt",
+		SFX         = "LightningStrike",
 		Cinematic   = false,
 		Description = "A fast attacking shot that creates a sharp lightning trail.",
 		-- Discovered through player progression, not granted at signup.
@@ -100,9 +96,9 @@ local Techniques = {
 		Power       = 1.0,
 		Range       = 12,
 		Duration    = 0.5,
-		Animation   = "GalePhantom",
-		VFX         = "VFX_GalePhantom",
-		SFX         = "SFX_WindDash",
+		Animation   = "SonicSpeed",
+		VFX         = "Tornado",
+		SFX         = "WindWhoosh",
 		Cinematic   = false,
 		Description = "A high-speed dribble that creates a brief wind afterimage.",
 		Requirements = {},
@@ -119,9 +115,9 @@ local Techniques = {
 		Power       = 1.0,
 		Range       = 10,
 		Duration    = 0.6,
-		Animation   = "ShadowShift",
-		VFX         = "VFX_ShadowShift",
-		SFX         = "SFX_ShadowStep",
+		Animation   = "Dash",
+		VFX         = "DarkSmoke",
+		SFX         = "ReverseSuckSwoosh",
 		Cinematic   = false,
 		Description = "A deceptive movement that briefly masks the player's direction.",
 		-- Earned by actually using the ball, not by levelling.
@@ -142,9 +138,9 @@ local Techniques = {
 		Power       = 1.2,
 		Range       = 120,
 		Duration    = 0.4,
-		Animation   = "StarlinePass",
-		VFX         = "VFX_StarlinePass",
-		SFX         = "SFX_CosmicPass",
+		Animation   = "Dash",
+		VFX         = "MagicBlast",
+		SFX         = "Ripple",
 		Cinematic   = false,
 		Description = "A precision pass represented by a glowing trajectory.",
 		Requirements = {},
@@ -163,9 +159,9 @@ local Techniques = {
 		Power       = 1.4,
 		Range       = 8,
 		Duration    = 0.6,
-		Animation   = "TitanRampart",
-		VFX         = "VFX_TitanRampart",
-		SFX         = "SFX_EarthBlock",
+		Animation   = nil,
+		VFX         = "FrostyBlueCrystals",
+		SFX         = "HeavyThunder",
 		Cinematic   = false,
 		Description = "A defensive technique that creates a short-lived supernatural barrier.",
 		Requirements = {},
@@ -184,9 +180,9 @@ local Techniques = {
 		Power       = 1.5,
 		Range       = 0,
 		Duration    = 0.8,
-		Animation   = "AstralShield",
-		VFX         = "VFX_AstralShield",
-		SFX         = "SFX_GKCosmic",
+		Animation   = nil,
+		VFX         = "FrostyBlueCrystals",
+		SFX         = "BlackFlash",
 		Cinematic   = false,
 		Description = "A supernatural goalkeeper save technique that creates a luminous shield.",
 		-- Keeper technique: gated behind level AND the goalkeeper position.

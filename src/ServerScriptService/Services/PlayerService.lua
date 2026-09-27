@@ -40,8 +40,30 @@ local DATASTORE_DELAY   = 2   -- seconds between retries
 local profileStore: DataStore
 local isStudio = RunService:IsStudio()
 
--- In Studio we still attempt DataStore so saving can be tested,
--- but failures are non-fatal.
+-- ─────────────────────────────────────────────
+-- Studio API access
+--
+-- The prototype spammed this every save:
+--   DataStoreService: StudioAccessToApisNotAllowed: Cannot write to DataStore
+--   from studio if API access is not enabled.
+--   [PlayerService] DataStore save failed (attempt 1/3) ...
+--   ... x3, then "Saved profile for Code"  <- printed even though nothing saved.
+--
+-- Two separate problems: it retried forever against a hard block, and it
+-- claimed success when the write had failed outright.
+--
+-- The fix probes ONCE. GetDataStore() itself succeeds in Studio even when API
+-- access is off — the failure only happens on the first real call — so the
+-- check has to be a real call, not a lookup.
+--
+-- nil    = not probed yet
+-- true   = DataStores work (Studio with API access enabled, or production)
+-- false  = unavailable; run on temporary session data and stop retrying
+-- ─────────────────────────────────────────────
+local datastoresEnabled: boolean? = nil
+
+-- Lazily creates the store handle. Creating it never throws, so this is safe
+-- to call before the probe has resolved.
 local function getStore()
 	if not profileStore then
 		local ok, result = pcall(function()
@@ -54,6 +76,47 @@ local function getStore()
 		end
 	end
 	return profileStore
+end
+
+local function isStudioAccessError(err: any): boolean
+	local msg = tostring(err)
+	return string.find(msg, "StudioAccessToApisNotAllowed", 1, true) ~= nil
+		or string.find(msg, "Studio access to APIs is not allowed", 1, true) ~= nil
+		or string.find(msg, "if API access is not enabled", 1, true) ~= nil
+end
+
+--- One real DataStore call to find out whether persistence is possible.
+--- Respects a developer who has enabled "Studio Access to API Services" in
+--- Game Settings, so saving can still be tested properly before shipping.
+local function probeDataStoreAccess(): boolean
+	if not isStudio then
+		datastoresEnabled = true
+		return true
+	end
+
+	local store = getStore()
+	if not store then
+		datastoresEnabled = false
+		print("[DataService] Studio DataStore access unavailable.")
+		print("[DataService] Running with temporary session data.")
+		return false
+	end
+
+	local ok, err = pcall(function()
+		store:GetAsync("__mythicstrikers_access_probe__")
+	end)
+	datastoresEnabled = ok
+
+	if ok then
+		print("[DataService] Studio DataStore access confirmed — saving is live.")
+	else
+		-- Exactly the two lines the design brief asks for, and only once.
+		print("[DataService] Studio DataStore access unavailable.")
+		print("[DataService] Running with temporary session data.")
+		print("[DataService] Enable Game Settings > Security > "
+			.. "\"Studio Access to API Services\" to test real saving.")
+	end
+	return ok
 end
 
 -- ─────────────────────────────────────────────
@@ -79,7 +142,11 @@ local _awakening: { [number]: {
 
 -- Sprint state (set by FootballController remote)
 local _isSprinting: { [number]: boolean } = {}
-
+-- Last values pushed to each client, so the regen loop can skip redundant
+-- stamina/energy remotes instead of firing 20 events/second/player.
+local _lastSentStamina: { [number]: number } = {}
+local _lastSentEnergy:  { [number]: number } = {}
+local _lastSentAt:      { [number]: number } = {}
 -- Technique cooldowns:  userId → { [techId] = expireTime }
 local _cooldowns: { [number]: { [string]: number } } = {}
 
@@ -255,6 +322,11 @@ end
 -- DataStore helpers
 -- ─────────────────────────────────────────────
 local function loadFromStore(userId: number): table?
+	-- Probe once, then never retry against a known block. This guard is what
+	-- stops the Studio DataStore error spam.
+	if datastoresEnabled == nil then probeDataStoreAccess() end
+	if datastoresEnabled == false then return nil end
+
 	local store = getStore()
 	if not store then return nil end
 
@@ -279,9 +351,12 @@ local function loadFromStore(userId: number): table?
 	return nil
 end
 
-local function saveToStore(userId: number, profile: table)
+local function saveToStore(userId: number, profile: table): boolean
+	if datastoresEnabled == nil then probeDataStoreAccess() end
+	if datastoresEnabled == false then return false end
+
 	local store = getStore()
-	if not store then return end
+	if not store then return false end
 
 	local key = "Profile_" .. userId
 
@@ -301,7 +376,7 @@ local function saveToStore(userId: number, profile: table)
 			end)
 		end)
 		if ok then
-			return
+			return true
 		else
 			warn(string.format(
 				"[PlayerService] DataStore save failed (attempt %d/%d): %s",
@@ -312,6 +387,13 @@ local function saveToStore(userId: number, profile: table)
 			end
 		end
 	end
+
+	-- Honest failure: every attempt errored, so nothing was persisted.
+	warn(string.format(
+		"[PlayerService] Could NOT save profile (userId %d) after %d attempts.",
+		userId, DATASTORE_RETRIES
+	))
+	return false
 end
 
 -- ─────────────────────────────────────────────
@@ -424,8 +506,16 @@ local function savePlayer(player: Player)
 	if not profile then return end
 
 	task.spawn(function()
-		saveToStore(userId, profile)
-		print(string.format("[PlayerService] Saved profile for %s", player.DisplayName))
+		local persisted = saveToStore(userId, profile)
+		if persisted then
+			print(string.format("[PlayerService] Saved profile for %s", player.DisplayName))
+		else
+			print(string.format(
+				"[PlayerService] Session-only data for %s - not persisted "
+					.. "(expected when DataStore access is unavailable).",
+				player.DisplayName
+			))
+		end
 	end)
 end
 
@@ -507,15 +597,29 @@ local function onHeartbeat(dt: number)
 			end
 		end
 
-		-- ── Broadcast to owning client (batched at regen interval) ─
-		Remotes.FireClient(Constants.Remotes.PlayerStaminaUpdate, player, {
-			Stamina    = currentStamina,
-			MaxStamina = maxStamina,
-		})
-		Remotes.FireClient(Constants.Remotes.PlayerEnergyUpdate, player, {
-			Energy    = _energy[userId],
-			MaxEnergy = Constants.MAX_ENERGY,
-		})
+		-- ── Broadcast to owning client ────────────────────────────────
+		-- Only send when a value actually moved, with a 2s keepalive so a
+		-- client that joined late still converges. The loop runs at
+		-- REGEN_UPDATE_INTERVAL, so firing both remotes unconditionally meant
+		-- 20 remote events per second per player even with both bars full.
+		local now = tick()
+		if math.abs(currentStamina - (_lastSentStamina[userId] or -1)) >= 1
+			or (now - (_lastSentAt[userId] or 0)) > 2 then
+			_lastSentStamina[userId] = currentStamina
+			_lastSentAt[userId]      = now
+			Remotes.FireClient(Constants.Remotes.PlayerStaminaUpdate, player, {
+				Stamina    = currentStamina,
+				MaxStamina = maxStamina,
+			})
+		end
+		if math.abs(currentEnergy - (_lastSentEnergy[userId] or -1)) >= 1
+			or (now - (_lastSentAt[userId] or 0)) > 2 then
+			_lastSentEnergy[userId] = currentEnergy
+			Remotes.FireClient(Constants.Remotes.PlayerEnergyUpdate, player, {
+				Energy    = currentEnergy,
+				MaxEnergy = Constants.MAX_ENERGY,
+			})
+		end
 	end
 end
 

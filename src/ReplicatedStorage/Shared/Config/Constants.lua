@@ -157,9 +157,23 @@ Constants.TECH_COOLDOWN = {
 Constants.MAX_SERVER_SIZE       = 40             -- max concurrent players per server
 
 -- ─────────────────────────────────────────────
--- LOBBY WORLD
+-- TOWN / WORLD LAYOUT
+--
+-- The arena owns the world origin. The town wraps around its south side and
+-- the town centre — where players spawn — sits at TOWN_Z. The old value of
+-- 600 described an isolated arena slab that the town has replaced.
 -- ─────────────────────────────────────────────
-Constants.LOBBY_ORIGIN          = Vector3.new(0, 0, 600)   -- offset from stadium (far behind +Z)
+Constants.TOWN_ORIGIN          = Vector3.new(0, 0, 330)  -- town centre / player spawn
+Constants.TOWN_Y               = 0.6                      -- town plateau height
+Constants.STREET_PITCH         = Vector3.new(300, 0, 520)
+Constants.PARK_ORIGIN          = Vector3.new(-260, 0, 520)
+Constants.TRAINING_ORIGIN      = Vector3.new(0, 0, -430)  -- north of the arena
+Constants.RESIDENTIAL_X        = -270
+Constants.SHOPS_X              = 270
+
+-- Retained for compatibility: older call sites read LOBBY_ORIGIN as "where the
+-- player spawns". That is now the town centre, so the two agree by definition.
+Constants.LOBBY_ORIGIN          = Constants.TOWN_ORIGIN
 Constants.LOBBY_SPAWN_RADIUS    = 20            -- radius around lobby spawn ring
 Constants.LOBBY_INTERACTION_RANGE = 10          -- studs — ProximityPrompt activation distance
 Constants.NPC_WANDER_RADIUS     = 12            -- studs NPCs roam around their anchor

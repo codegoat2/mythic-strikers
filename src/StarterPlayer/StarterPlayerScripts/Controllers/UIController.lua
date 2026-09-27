@@ -40,6 +40,7 @@ local PlayerGui   = LocalPlayer:WaitForChild("PlayerGui")
 
 local Constants = require(ReplicatedStorage.Shared.Config.Constants)
 local Remotes   = require(ReplicatedStorage.Remotes)
+local ShopUI    = require(game:GetService("StarterGui").UI.ShopUI)
 
 -- ─────────────────────────────────────────────
 -- Module
@@ -134,6 +135,7 @@ end
 -- ScreenGui root
 -- ─────────────────────────────────────────────
 local _hudGui: ScreenGui
+local _cameraController: table? = nil
 local _overlayGui: ScreenGui   -- goal/halftime/end overlays (always on top)
 local _mobileGui: ScreenGui    -- mobile controls
 
@@ -144,6 +146,7 @@ local _scoreLabel:      TextLabel
 local _timerLabel:      TextLabel
 local _scoreA:          TextLabel
 local _scoreB:          TextLabel
+local _scoreboardPanel: Frame?    = nil
 
 local _energyFill:      Frame
 local _staminaFill:     Frame
@@ -168,6 +171,7 @@ local _playerCard:      Frame?
 local _playerName:      TextLabel?
 local _playerLevel:     TextLabel?
 local _playerXPBar:     Frame?
+local _playerXPFill:    Frame?
 local _playerRank:      TextLabel?
 local _playerTeam:      TextLabel?
 
@@ -214,7 +218,12 @@ local function buildPlayerCard()
 		UDim2.new(0, 0, 1, 0), UDim2.new(0, 0, 0, 0),
 		C.ENERGY, 0)
 	makeCorner(xpFill, 4)
-	_playerXPBar._fill = xpFill
+	-- Held in a module local, NOT as a field on the Instance. Assigning
+	-- arbitrary fields to a Roblox Instance does not persist, so
+	-- _playerXPBar._fill read back as nil and threw
+	-- "_fill is not a valid member of Frame", which killed UIController.Init
+	-- and with it the entire HUD.
+	_playerXPFill = xpFill
 
 	_playerRank = makeLabel(panel, "PlayerRank", "Rookie", 14, C.TEXT_DIM,
 		UDim2.new(0.5, -8, 0, 20), UDim2.new(16, 0, 100, 0))
@@ -252,40 +261,115 @@ local function buildObjectives()
 	panel.Visible = false
 end
 
+local _lobbyMenuFrame: Frame? = nil
+local _lobbyMenuVisible = false
+
+local function buildLobbyMenu()
+	if _lobbyMenuFrame then return end
+
+	local panel = makeFrame(_hudGui, "LobbyMenu",
+		UDim2.new(0, 220, 0, 340),
+		UDim2.new(1, -16, 1, -16),
+		C.BG_PANEL, 0.95
+	)
+	makeCorner(panel, 14)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = C.ACCENT
+	stroke.Thickness = 1
+	stroke.Parent = panel
+	panel.Visible = false
+	_lobbyMenuFrame = panel
+
+	local function row(name, label, y, color, callback)
+		local btn = Instance.new("TextButton")
+		btn.Name = name; btn.Text = label
+		btn.Size = UDim2.new(1, -16, 0, 44)
+		btn.Position = UDim2.new(0, 8, 0, y)
+		btn.BackgroundColor3 = color or C.BG
+		btn.TextColor3 = C.TEXT
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 15
+		btn.Parent = panel
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 8)
+		c.Parent = btn
+		btn.MouseButton1Click:Connect(callback)
+		return btn
+	end
+
+	local y = 8
+	row("ShopBtn",    "Shop",        y, Color3.fromRGB(30, 144, 255), function() ShopUI.Open("TechniqueShop") end); y += 54
+	row("MatchBtn",   "PLAY MATCH",  y, Color3.fromRGB(80, 220, 80), function() ShopUI.OpenMatchConfirm() end); y += 60
+	row("StatsBtn",   "Player Stats",y, Color3.fromRGB(140, 140, 165), function() ShopUI.OpenPlayerStats() end); y += 54
+	row("InvBtn",     "Inventory",   y, Color3.fromRGB(255, 215, 0), function() ShopUI.OpenInventory() end); y += 54
+	row("SkillsBtn",  "Skills",      y, Color3.fromRGB(0, 180, 255), function() ShopUI.OpenSkills() end); y += 54
+	row("MasteryBtn", "Mastery",     y, Color3.fromRGB(255, 150, 0), function() ShopUI.OpenMastery() end); y += 54
+	row("EmoteBtn",   "Emotes",      y, Color3.fromRGB(191, 95, 255), function() ShopUI.OpenEmotePicker() end); y += 54
+	row("NoticeBtn",  "Quests",      y, Color3.fromRGB(0, 180, 255), function() ShopUI.OpenNoticeBoard() end); y += 54
+	row("LeaderBtn",  "Leaderboard", y, Color3.fromRGB(255, 215, 0), function() ShopUI.OpenLeaderboard() end); y += 54
+	row("SettingsBtn","Settings",    y, Color3.fromRGB(140, 140, 165), function() ShopUI.OpenSettings() end); y += 54
+	row("CloseBtn",   "Close",       y, Color3.fromRGB(255, 80, 80), function() UIController.ToggleLobbyMenu() end)
+end
+
+function UIController.ToggleLobbyMenu()
+	if not _lobbyMenuFrame then return end
+	_lobbyMenuVisible = not _lobbyMenuVisible
+	_lobbyMenuFrame.Visible = _lobbyMenuVisible
+	if _lobbyMenuVisible then
+		_lobbyMenuFrame.BackgroundTransparency = 0
+	end
+end
+
 -- ─────────────────────────────────────────────
 -- Build HUD
 -- ─────────────────────────────────────────────
 
 local function buildScoreboard()
-	-- Top-centre panel
-	local panel = makeFrame(_hudGui, "Scoreboard",
+	_scoreboardPanel = makeFrame(_hudGui, "Scoreboard",
 		UDim2.new(0, 300, 0, 68),
 		UDim2.new(0.5, -150, 0, 8),
 		C.BG_PANEL, 0.15
 	)
-	makeCorner(panel, 10)
+	makeCorner(_scoreboardPanel, 10)
 
 	-- Subtle border
 	local stroke = Instance.new("UIStroke")
 	stroke.Color     = Color3.fromRGB(60, 60, 100)
 	stroke.Thickness = 1
-	stroke.Parent    = panel
+	stroke.Parent    = _scoreboardPanel
 
 	-- Team A score
-	_scoreA = makeLabel(panel, "ScoreA", "0", 36, C.TEAM_A,
+	_scoreA = makeLabel(_scoreboardPanel, "ScoreA", "0", 36, C.TEAM_A,
 		UDim2.new(0.28, 0, 0, 44), UDim2.new(0.02, 0, 0, 4))
 
 	-- Separator
-	makeLabel(panel, "Sep", "—", 20, C.TEXT_DIM,
+	makeLabel(_scoreboardPanel, "Sep", "—", 20, C.TEXT_DIM,
 		UDim2.new(0.14, 0, 0, 44), UDim2.new(0.30, 0, 0, 4))
 
 	-- Team B score
-	_scoreB = makeLabel(panel, "ScoreB", "0", 36, C.TEAM_B,
+	_scoreB = makeLabel(_scoreboardPanel, "ScoreB", "0", 36, C.TEAM_B,
 		UDim2.new(0.28, 0, 0, 44), UDim2.new(0.56, 0, 0, 4))
 
 	-- Timer — sits in bottom strip of the panel
-	_timerLabel = makeLabel(panel, "Timer", "3:00", 14, C.TEXT_DIM,
+	_timerLabel = makeLabel(_scoreboardPanel, "Timer", "3:00", 14, C.TEXT_DIM,
 		UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 1, -22))
+
+	_scoreboardPanel.Visible = false
+end
+
+local function updateScoreboardVisibility(matchState: string?)
+	if not _scoreboardPanel then return end
+
+	local teamId = _footballController and _footballController.GetTeamId and _footballController.GetTeamId() or nil
+	local isSpectator = (teamId == "Spectator")
+	local isPlayer    = (teamId == "TeamA" or teamId == "TeamB")
+
+	local visibleInMatch = (matchState == "Countdown"
+		or matchState == "Active"
+		or matchState == "HalfTime"
+		or matchState == "Ended")
+
+	_scoreboardPanel.Visible = isSpectator or (isPlayer and visibleInMatch)
 end
 
 local function buildEnergyBars()
@@ -412,7 +496,7 @@ local function buildGoalBanner()
 		C.BG_PANEL, 0.1
 	)
 	makeCorner(_goalBanner, 12)
-	-- Gold neon border stroke
+	-- Gold accent border stroke
 	local stroke = Instance.new("UIStroke")
 	stroke.Color     = C.ACCENT
 	stroke.Thickness = 2
@@ -455,6 +539,72 @@ local function buildHUD()
 	buildNotifications()
 	buildPlayerCard()
 	buildObjectives()
+	buildLobbyMenu()
+
+	-- Lobby menu toggle button (top-right, always visible in lobby)
+	_lobbyMenuBtn = makeFrame(_hudGui, "LobbyMenuBtn",
+		UDim2.new(0, 44, 0, 44),
+		UDim2.new(1, -60, 0, 8),
+		C.BG_PANEL, 0.6
+	)
+	makeCorner(_lobbyMenuBtn, 10)
+	local menuStroke = Instance.new("UIStroke")
+	menuStroke.Color = C.ACCENT
+	menuStroke.Thickness = 1
+	menuStroke.Parent = _lobbyMenuBtn
+	local menuLbl = makeLabel(_lobbyMenuBtn, "MenuIcon", "☰", 22, C.ACCENT)
+	menuLbl.Font = Enum.Font.GothamBlack
+	_lobbyMenuBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			UIController.ToggleLobbyMenu()
+		end
+	end)
+
+	-- Desktop control hints: a compact legend shown briefly on boot so new
+	-- players know the scheme without reading external docs.
+	if not _isMobile then
+		local hint = makeFrame(_hudGui, "ControlHints",
+			UDim2.new(0, 220, 0, 160),
+			UDim2.new(1, -240, 1, -200),
+			C.BG_PANEL, 0.75
+		)
+		makeCorner(hint, 12)
+		local pad = 10
+		local rows = {
+			{ "WASD", "Move" },
+			{ "LMB", "Shoot" },
+			{ "F", "Pass" },
+			{ "G", "Tackle" },
+			{ "Q/E/R/T", "Techniques" },
+			{ "Z", "Awakening" },
+			{ "V", "Celebration" },
+		}
+		for i, row in ipairs(rows) do
+			local keyLbl = makeLabel(hint, "Key" .. i, row[1], 13, C.ACCENT)
+			keyLbl.Position = UDim2.new(0, pad, 0, pad + (i - 1) * 22)
+			keyLbl.Size = UDim2.new(0, 60, 0, 20)
+			keyLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+			local valLbl = makeLabel(hint, "Val" .. i, row[2], 13, C.TEXT)
+			valLbl.Position = UDim2.new(0, pad + 65, 0, pad + (i - 1) * 22)
+			valLbl.Size = UDim2.new(0, 140, 0, 20)
+			valLbl.TextXAlignment = Enum.TextXAlignment.Left
+		end
+		TweenService:Create(hint, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			BackgroundTransparency = 1,
+		}):Play()
+		for _, c in ipairs(hint:GetChildren()) do
+			if c:IsA("TextLabel") then
+				TweenService:Create(c, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+					TextTransparency = 1,
+				}):Play()
+			end
+		end
+		task.delay(1.5, function()
+			if hint and hint.Parent then hint:Destroy() end
+		end)
+	end
 end
 
 -- ─────────────────────────────────────────────
@@ -473,8 +623,9 @@ end
 -- Mobile GUI
 -- ─────────────────────────────────────────────
 
-local VJ_SIZE   = 100   -- px diameter of VJ base
-local BTN_SIZE  = 64    -- px action button size
+local VJ_SIZE   = 120   -- px diameter of VJ base
+local BTN_SIZE  = 72    -- px action button size
+local BTN_GAP   = 10    -- px between buttons
 
 local function makeMobileButton(parent, name, label, pos, color)
 	local btn = makeFrame(parent, name,
@@ -501,41 +652,43 @@ local function buildMobileUI()
 	-- Virtual joystick base (left side)
 	_vjBase = makeFrame(_mobileGui, "VJBase",
 		UDim2.new(0, VJ_SIZE, 0, VJ_SIZE),
-		UDim2.new(0, 40, 1, -(VJ_SIZE + 40)),
-		Color3.fromRGB(255,255,255), 0.8
+		UDim2.new(0, 30, 1, -(VJ_SIZE + 30)),
+		Color3.fromRGB(255,255,255), 0.85
 	)
 	makeCorner(_vjBase, VJ_SIZE / 2)
 
 	_vjThumb = makeFrame(_vjBase, "VJThumb",
-		UDim2.new(0, 46, 0, 46),
-		UDim2.new(0.5, -23, 0.5, -23),
-		C.ACCENT, 0.3
+		UDim2.new(0, 52, 0, 52),
+		UDim2.new(0.5, -26, 0.5, -26),
+		C.ACCENT, 0.35
 	)
-	makeCorner(_vjThumb, 23)
+	makeCorner(_vjThumb, 26)
 
-	-- Action buttons (right side)
-	local rightX = UDim2.new(1, -(BTN_SIZE * 2 + 24))
-	local rightY = UDim2.new(1, -(BTN_SIZE + 40))
+	-- Right-side action cluster
+	local rightEdge = UDim2.new(1, -(BTN_SIZE + 20))
+	local row1Y = UDim2.new(1, -(BTN_SIZE + 20))
+	local row2Y = UDim2.new(1, -(BTN_SIZE * 2 + BTN_GAP * 3 + 20))
+	local row3Y = UDim2.new(1, -(BTN_SIZE * 3 + BTN_GAP * 5 + 20))
 
-	_mobileButtons["Pass"]   = makeMobileButton(_mobileGui, "PassBtn",   "PASS",   UDim2.new(1, -(BTN_SIZE * 3 + 36), 1, -(BTN_SIZE + 40)), C.TEAM_A)
-	_mobileButtons["Shoot"]  = makeMobileButton(_mobileGui, "ShootBtn",  "SHOOT",  UDim2.new(1, -(BTN_SIZE * 2 + 24), 1, -(BTN_SIZE + 40)), C.TEAM_B)
-	_mobileButtons["Sprint"] = makeMobileButton(_mobileGui, "SprintBtn", "SPRINT", UDim2.new(1, -(BTN_SIZE + 12),     1, -(BTN_SIZE * 2 + 52)), C.STAMINA)
-	_mobileButtons["Tackle"] = makeMobileButton(_mobileGui, "TackleBtn", "TACKLE", UDim2.new(1, -(BTN_SIZE + 12),     1, -(BTN_SIZE + 40)), C.AWAKENING)
+	_mobileButtons["Shoot"]  = makeMobileButton(_mobileGui, "ShootBtn",  "SHOOT",  UDim2.new(1, -(BTN_SIZE + 20), 1, -(BTN_SIZE + 20)), C.TEAM_B)
+	_mobileButtons["Pass"]   = makeMobileButton(_mobileGui, "PassBtn",   "PASS",   UDim2.new(1, -(BTN_SIZE * 2 + BTN_GAP + 20), 1, -(BTN_SIZE + 20)), C.TEAM_A)
+	_mobileButtons["Tackle"] = makeMobileButton(_mobileGui, "TackleBtn", "TACKLE", UDim2.new(1, -(BTN_SIZE * 3 + BTN_GAP * 2 + 20), 1, -(BTN_SIZE + 20)), C.AWAKENING)
+	_mobileButtons["Sprint"] = makeMobileButton(_mobileGui, "SprintBtn", "SPRINT", UDim2.new(1, -(BTN_SIZE + 20), 1, -(BTN_SIZE * 2 + BTN_GAP * 2 + 20)), C.STAMINA)
 
-	-- Technique buttons (above action buttons)
+	-- Technique buttons: compact row above action buttons
+	local techStartX = 1 - (4 * BTN_SIZE + 3 * BTN_GAP + 20) / 1280
 	local techColors = { C.ENERGY, C.ACCENT, C.AWAKENING, C.TEAM_A }
 	for i = 1, 4 do
 		_mobileButtons["Tech" .. i] = makeMobileButton(_mobileGui, "Tech" .. i .. "Btn",
 			"T" .. i,
-			UDim2.new(1, -(BTN_SIZE * (5 - i) + 12 * (4 - i) + 12),
-			          1, -(BTN_SIZE * 2 + 52)),
+			UDim2.new(0, 20 + (i - 1) * (BTN_SIZE + BTN_GAP), 1, -(BTN_SIZE * 2 + BTN_GAP * 3 + 20)),
 			techColors[i]
 		)
 	end
 
-	-- Awakening button (large, centre-right)
+	-- Awakening / jump button (large, easy thumb reach)
 	_mobileButtons["Awakening"] = makeMobileButton(_mobileGui, "AwakenBtn",
-		"⚡", UDim2.new(0.5, 20, 1, -(BTN_SIZE * 2 + 52)), C.AWAKENING
+		"⚡", UDim2.new(0.5, -BTN_SIZE / 2, 1, -(BTN_SIZE + 20)), C.AWAKENING
 	)
 end
 
@@ -677,6 +830,15 @@ local function onMatchStateUpdate(payload: table)
 			or (winner == "TeamA" and "TEAM A WINS!" or "TEAM B WINS!")
 		UIController.ShowFullscreenMessage(msg, 6)
 	end
+
+	-- Hide lobby menu during active match / countdown; show in lobby/waiting
+	local inMatch = (payload.State == "Active" or payload.State == "Countdown"
+		or payload.State == "HalfTime")
+	if _lobbyMenuFrame then
+		_lobbyMenuFrame.Visible = (not inMatch) and _lobbyMenuVisible
+	end
+
+	updateScoreboardVisibility(payload.State)
 end
 
 local function onPlayerEnergyUpdate(payload: table)
@@ -713,6 +875,13 @@ local function onGoalScored(payload: table)
 
 	-- Update score immediately
 	onScoreUpdate(payload)
+
+	-- A goal is the loudest moment in the game: white flash plus a real camera
+	-- punch, so it lands even before the banner finishes animating.
+	UIController.Flash(Color3.new(1, 1, 1), 0.4)
+	if _cameraController and _cameraController.Shake then
+		_cameraController.Shake(1.6, 0.5)
+	end
 
 	-- Animate goal banner drop-in
 	if _goalBanner then
@@ -887,10 +1056,40 @@ function UIController.Init(inputCtrl: table?, footballCtrl: table?)
 	Remotes.OnClientEvent(Constants.Remotes.ObjectiveUpdate,     onObjectiveUpdate)
 	Remotes.OnClientEvent(Constants.Remotes.PlayerProgressUpdate, onProgressUpdate)
 	Remotes.OnClientEvent(Constants.Remotes.PlayerLevelUp,       onPlayerLevelUp)
+	Remotes.OnClientEvent(Constants.Remotes.TeamAssigned,        function(payload)
+		if typeof(payload) ~= "table" then return end
+		updateScoreboardVisibility()
+	end)
 
 	RunService.RenderStepped:Connect(onRenderStepped)
 
+	-- Auto-open lobby menu on spawn in lobby
+	task.spawn(function()
+		task.wait(1.5)
+		if _lobbyMenuFrame and not _lobbyMenuVisible then
+			UIController.ToggleLobbyMenu()
+		end
+	end)
+
+	-- Lobby menu toggle: M key on desktop
+	local UserInputService = game:GetService("UserInputService")
+	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then return end
+		if input.KeyCode == Enum.KeyCode.M then
+			UIController.ToggleLobbyMenu()
+		end
+	end)
+
 	print(string.format("[UIController] Initialised. Mobile: %s", tostring(_isMobile)))
+end
+
+--- Apply a match-state snapshot locally.
+--- ClientMain needs this to seed the UI after asking the server for the current
+--- match state. It previously tried to fake the update by calling
+--- `Remotes.Get(...).OnClientEvent:Fire(data)`, which is not a valid call —
+--- OnClientEvent is a read-only signal that only the server may fire.
+function UIController.ApplyMatchState(payload: table)
+	onMatchStateUpdate(payload)
 end
 
 --- Set the display name for a technique slot.
@@ -984,12 +1183,12 @@ function UIController.ShowPlayerCard(profile: table)
 	if _playerRank then
 		_playerRank.Text = tostring(profile.Rank or "Rookie")
 	end
-	if _playerXPBar and _playerXPBar._fill then
+	if _playerXPFill then
 		local xp = profile.XP or 0
 		local nextLvlXP = PlayerService_GetNextLevelXP(profile.Level or 1)
 		if nextLvlXP > 0 then
 			local ratio = math.clamp(xp / nextLvlXP, 0, 1)
-			_playerXPBar._fill.Size = UDim2.new(ratio, 0, 1, 0)
+			_playerXPFill.Size = UDim2.new(ratio, 0, 1, 0)
 		end
 	end
 	_playerCard.Visible = true
@@ -1069,8 +1268,8 @@ function UIController.SetProgress(payload: table)
 	local needed = payload.XPNeeded or PlayerService_GetNextLevelXP(payload.Level or 1)
 	local ratio = (needed > 0) and math.clamp(xp / needed, 0, 1) or 0
 
-	if _playerXPBar and _playerXPBar._fill then
-		_playerXPBar._fill.Size = UDim2.new(ratio, 0, 1, 0)
+	if _playerXPFill then
+		_playerXPFill.Size = UDim2.new(ratio, 0, 1, 0)
 	end
 end
 
@@ -1200,14 +1399,39 @@ function UIController.ShowMatchResult(title, payload)
 	end)
 end
 
+--- Receive the CameraController so UI events (goals, saves) can shake it.
+function UIController.SetCameraController(cameraCtrl: table?)
+	_cameraController = cameraCtrl
+end
+
+--- Full-screen colour flash. Used for goals and heavy impacts — a cheap,
+--- asset-free way to make a moment land.
+function UIController.Flash(color: Color3?, duration: number?)
+	if not _overlayGui then return end
+	local tint = color or Color3.new(1, 1, 1)
+	local frame = makeFrame(_overlayGui, "Flash",
+		UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0),
+		tint, 1)
+	frame.Active = false
+	frame.ZIndex  = 50
+	task.spawn(function()
+		local steps = 8
+		for i = 1, steps do
+			task.wait((duration or 0.35) / steps)
+			if not frame.Parent then return end
+			frame.BackgroundTransparency = 1 - (1 - i / steps) * 0.85
+		end
+		if frame.Parent then frame:Destroy() end
+	end)
+end
+
 --- Show a save effect animation.
 function UIController.PlaySaveEffect(isLocal: boolean)
 	if not isLocal then return end
 	UIController.ShowNotification("SAVE!", 1.5)
-	local sfx = workspace:FindFirstChild("Sounds")
-	if sfx then
-		local save = sfx:FindFirstChild("Save")
-		if save then save:Play() end
+	UIController.Flash(Color3.fromRGB(120, 200, 255), 0.25)
+	if _cameraController and _cameraController.Shake then
+		_cameraController.Shake(0.8, 0.3)
 	end
 end
 
@@ -1215,10 +1439,9 @@ end
 function UIController.PlayTackleEffect(isTackler: boolean)
 	if not isTackler then return end
 	UIController.ShowNotification("TACKLE!", 1.2)
-	local sfx = workspace:FindFirstChild("Sounds")
-	if sfx then
-		local tkl = sfx:FindFirstChild("Tackle")
-		if tkl then tkl:Play() end
+	UIController.Flash(Color3.fromRGB(255, 220, 120), 0.2)
+	if _cameraController and _cameraController.Shake then
+		_cameraController.Shake(0.5, 0.22)
 	end
 end
 

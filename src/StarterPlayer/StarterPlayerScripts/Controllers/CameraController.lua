@@ -235,6 +235,46 @@ local function computeNormalCamera(root: BasePart, dt: number): CFrame
 	return CFrame.lookAt(camPos, lookTarget)
 end
 
+-- Screen shake state. Amplitude decays each frame so a hit reads as a punch
+-- rather than a permanent jitter.
+local _shakeAmplitude = 0
+local _shakeTimeLeft  = 0
+local _shakeDuration  = 0.35
+
+--- Kick the camera. Used for goals, tackles and heavy technique impacts, which
+--- is most of what makes a moment feel like it landed.
+--- @param intensity number  studs of displacement at the start of the shake
+--- @param duration  number? seconds
+function CameraController.Shake(intensity: number, duration: number?)
+	_shakeAmplitude = math.max(_shakeAmplitude, intensity)
+	_shakeDuration  = duration or _shakeDuration
+	_shakeTimeLeft  = _shakeDuration
+end
+
+local function updateShake(dt: number): CFrame
+	if _shakeTimeLeft <= 0 then
+		if _shakeAmplitude ~= 0 then _shakeAmplitude = 0 end
+		return CFrame.identity
+	end
+	_shakeTimeLeft -= dt
+	-- Decay across the shake so it fades out instead of stopping abruptly.
+	local k = math.clamp(_shakeTimeLeft / _shakeDuration, 0, 1)
+	local amp = _shakeAmplitude * k * k
+	_shakeAmplitude = math.max(0, _shakeAmplitude - dt * 40)
+	if amp <= 0.001 then return CFrame.identity end
+	local pos = Vector3.new(
+		(math.random() - 0.5) * 2 * amp,
+		(math.random() - 0.5) * 2 * amp,
+		(math.random() - 0.5) * 2 * amp
+	)
+	local rot = CFrame.Angles(
+		(math.random() - 0.5) * 0.03 * k,
+		(math.random() - 0.5) * 0.03 * k,
+		0
+	)
+	return CFrame.new(pos) * rot
+end
+
 -- ─────────────────────────────────────────────
 -- RenderStepped
 -- ─────────────────────────────────────────────
@@ -277,7 +317,7 @@ local function onRenderStepped(dt: number)
 	local fovAlpha = math.min(1, dt * Config.FOVLerpSpeed)
 	_currentFOV    = lerp(_currentFOV, targetFOV, fovAlpha)
 
-	Camera.CFrame      = _currentCFrame
+	Camera.CFrame      = _currentCFrame * updateShake(dt)
 	Camera.FieldOfView = _currentFOV
 end
 

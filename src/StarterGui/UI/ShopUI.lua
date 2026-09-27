@@ -258,6 +258,7 @@ end
 local _currentCatalogue: table? = nil
 local _currentShopType: string? = nil
 local _coinBalance = 0
+local _currentEmoteTrack: AnimationTrack? = nil
 
 -- ─────────────────────────────────────────────
 -- SHOP SCREEN
@@ -383,6 +384,45 @@ local EMOTES = {
 	{ Id="EMOTE_BOW",       Name="Bow",         Desc="Respectful bow." },
 }
 
+local EMOTE_ANIMATIONS = {
+	EMOTE_WAVE      = 507770239,
+	EMOTE_CELEBRATE = 507770677,
+	EMOTE_TAUNT     = 507770655,
+	EMOTE_DANCE     = 507771019,
+	EMOTE_POINT     = 507770453,
+	EMOTE_BOW       = 507770979,
+}
+
+local function playEmoteAnimation(emoteId: string)
+	local char = LocalPlayer.Character
+	if not char then return end
+	local hum = char:FindFirstChildWhichIsA("Humanoid")
+	if not hum then return end
+
+	if _currentEmoteTrack then
+		_currentEmoteTrack:Stop()
+		_currentEmoteTrack = nil
+	end
+
+	local animId = EMOTE_ANIMATIONS[emoteId]
+	if not animId then return end
+
+	local anim = Instance.new("Animation")
+	anim.AnimationId = "rbxassetid://" .. tostring(animId)
+
+	local animator = hum:FindFirstChildWhichIsA("Animator")
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = hum
+	end
+
+	local track = animator:LoadAnimation(anim)
+	track:Play()
+	_currentEmoteTrack = track
+
+	game.Debris:AddItem(anim, track.Length + 1)
+end
+
 local function buildEmotePicker()
 	local panelSize = makePanelSize(440, 360, 320, 340, 500, 420)
 	local panel = makeFrame(_root, "EmotePanel",
@@ -420,6 +460,7 @@ local function buildEmotePicker()
 		btn.Size   = UDim2.new(1,0,1,0); btn.Position = UDim2.new(0,0,0,0)
 		btn.BackgroundTransparency = 1; btn.Text = ""; btn.Parent = cell
 		btn.MouseButton1Click:Connect(function()
+			playEmoteAnimation(emote.Id)
 			Remotes.FireServer(Constants.Remotes.RequestCelebration, { EmoteId = emote.Id })
 			closePanel()
 		end)
@@ -619,6 +660,150 @@ local function buildPlayerStats()
 	end)
 end
 
+local function buildSettings()
+	local panel = makeFrame(_root, "SettingsPanel",
+		UDim2.new(0,440,0,360),
+		UDim2.new(0.5,-220,0.5,-180),
+		C.PANEL, 0)
+	corner(panel, 14)
+
+	local header = makeFrame(panel, "Header", UDim2.new(1,0,0,50), UDim2.new(0,0,0,0), C.BG, 0)
+	corner(header, 14)
+	makeLabel(header, "Title", "⚙️ SETTINGS", 20, C.ACCENT, UDim2.new(0.8,0,1,0), UDim2.new(0,12,0,0), Enum.Font.GothamBlack)
+	addCloseBtn(header)
+	sep(panel, 50)
+
+	local rows = {
+		{ label="Music Volume", value="80%", key="Music" },
+		{ label="SFX Volume", value="100%", key="SFX" },
+		{ label="Camera Sensitivity", value="50%", key="Camera" },
+		{ label="Show Player Names", value="On", key="Names" },
+	}
+	local y = 58
+	for _, r in ipairs(rows) do
+		local row = makeFrame(panel, r.key .. "Row", UDim2.new(1,-16,0,36), UDim2.new(0,8,0,y), C.PANEL2, 0)
+		corner(row, 6)
+		makeLabel(row, "Lbl", r.label, 14, C.TEXT, UDim2.new(0.6,0,1,0), UDim2.new(0,8,0,0)).TextXAlignment = Enum.TextXAlignment.Left
+		makeLabel(row, "Val", r.value, 14, C.DIM, UDim2.new(0.4,0,1,0), UDim2.new(0.6,0,0,0))
+		y += 42
+	end
+end
+
+local function buildInventory()
+	local panel = makeFrame(_root, "InventoryPanel",
+		UDim2.new(0,480,0,400),
+		UDim2.new(0.5,-240,0.5,-200),
+		C.PANEL, 0)
+	corner(panel, 14)
+
+	local header = makeFrame(panel, "Header", UDim2.new(1,0,0,50), UDim2.new(0,0,0,0), C.BG, 0)
+	corner(header, 14)
+	makeLabel(header, "Title", "🎒 INVENTORY", 20, C.ACCENT, UDim2.new(0.8,0,1,0), UDim2.new(0,12,0,0), Enum.Font.GothamBlack)
+	addCloseBtn(header)
+	sep(panel, 50)
+
+	local grid = makeFrame(panel, "Grid", UDim2.new(1,-16,1,-62), UDim2.new(0,8,0,58), C.BG, 0.4)
+	local layout = Instance.new("UIGridLayout")
+	layout.CellSize = UDim2.new(0, 72, 0, 72)
+	layout.CellPadding = UDim2.new(0, 8, 0, 8)
+	layout.Parent = grid
+
+	local items = {
+		{ name="Basic Boots", tier="Common", owned=true },
+		{ name="Swift Gloves", tier="Rare", owned=true },
+		{ name="Mystic Headband", tier="Epic", owned=false },
+		{ name="Phoenix Kit", tier="Legendary", owned=false },
+		{ name="Aura Charm", tier="Mythic", owned=false },
+	}
+	for _, item in ipairs(items) do
+		local cell = makeFrame(grid, item.name, UDim2.new(0,72,0,72), UDim2.new(0,0,0,0), C.PANEL2, 0)
+		corner(cell, 8)
+		local tierColor = TIER_COLORS[item.tier] or C.DIM
+		makeLabel(cell, "Name", item.name, 12, C.TEXT, UDim2.new(1,0,0.6,0), UDim2.new(0,0,0,0))
+		makeLabel(cell, "Tier", item.tier, 11, tierColor, UDim2.new(1,0,0.4,0), UDim2.new(0,0,0,0))
+		if not item.owned then
+			local lock = makeFrame(cell, "Lock", UDim2.new(1,0,1,0), UDim2.new(0,0,0,0), Color3.new(0,0,0), 0.5)
+			corner(lock, 8)
+			makeLabel(lock, "LockIcon", "🔒", 20, C.TEXT, UDim2.new(1,0,1,0), UDim2.new(0,0,0,0))
+		end
+	end
+end
+
+local function buildSkills()
+	local panel = makeFrame(_root, "SkillsPanel",
+		UDim2.new(0,500,0,420),
+		UDim2.new(0.5,-250,0.5,-210),
+		C.PANEL, 0)
+	corner(panel, 14)
+
+	local header = makeFrame(panel, "Header", UDim2.new(1,0,0,50), UDim2.new(0,0,0,0), C.BG, 0)
+	corner(header, 14)
+	makeLabel(header, "Title", "⚡ SKILLS", 20, C.ACCENT, UDim2.new(0.8,0,1,0), UDim2.new(0,12,0,0), Enum.Font.GothamBlack)
+	addCloseBtn(header)
+	sep(panel, 50)
+
+	local skills = {
+		{ name="Meteor Spiral", element="Fire", unlocked=true, level=3 },
+		{ name="Void Cannon", element="Shadow", unlocked=true, level=1 },
+		{ name=" Gale Force", element="Wind", unlocked=false, level=0 },
+		{ name="Titan Stomp", element="Earth", unlocked=false, level=0 },
+	}
+	local grid = makeFrame(panel, "Grid", UDim2.new(1,-16,1,-62), UDim2.new(0,8,0,58), C.BG, 0.4)
+	local layout = Instance.new("UIGridLayout")
+	layout.CellSize = UDim2.new(0, 100, 0, 100)
+	layout.CellPadding = UDim2.new(0, 8, 0, 8)
+	layout.Parent = grid
+
+	for _, s in ipairs(skills) do
+		local cell = makeFrame(grid, s.name, UDim2.new(0,100,0,100), UDim2.new(0,0,0,0), C.PANEL2, 0)
+		corner(cell, 10)
+		local icon = makeLabel(cell, "Icon", s.element:sub(1,1), 32, C.ACCENT, UDim2.new(1,0,0.6,0), UDim2.new(0,0,0,0))
+		icon.TextXAlignment = Enum.TextXAlignment.Center
+		makeLabel(cell, "Name", s.name, 12, C.TEXT, UDim2.new(1,0,0.4,0), UDim2.new(0,0,0,0)).TextXAlignment = Enum.TextXAlignment.Center
+		if not s.unlocked then
+			local lock = makeFrame(cell, "Lock", UDim2.new(1,0,1,0), UDim2.new(0,0,0,0), Color3.new(0,0,0), 0.6)
+			corner(lock, 10)
+			makeLabel(lock, "LockIcon", "🔒", 24, C.TEXT, UDim2.new(1,0,1,0), UDim2.new(0,0,0,0))
+		end
+	end
+end
+
+local function buildMastery()
+	local panel = makeFrame(_root, "MasteryPanel",
+		UDim2.new(0,500,0,420),
+		UDim2.new(0.5,-250,0.5,-210),
+		C.PANEL, 0)
+	corner(panel, 14)
+
+	local header = makeFrame(panel, "Header", UDim2.new(1,0,0,50), UDim2.new(0,0,0,0), C.BG, 0)
+	corner(header, 14)
+	makeLabel(header, "Title", "🌟 MASTERY", 20, C.ACCENT, UDim2.new(0.8,0,1,0), UDim2.new(0,12,0,0), Enum.Font.GothamBlack)
+	addCloseBtn(header)
+	sep(panel, 50)
+
+	local masteries = {
+		{ name="Dribbling", xp=120, max=200 },
+		{ name="Shooting", xp=85, max=150 },
+		{ name="Tackling", xp=200, max=200 },
+		{ name="Goalkeeping", xp=45, max=100 },
+		{ name="Passing", xp=160, max=200 },
+	}
+	local scroll = makeScrollFrame(panel, "Scroll", UDim2.new(1,-16,1,-62), UDim2.new(0,8,0,58))
+	local y = 0
+	for _, m in ipairs(masteries) do
+		local row = makeFrame(scroll, m.name, UDim2.new(1,-8,0,56), UDim2.new(0,0,0,y), C.PANEL2, 0)
+		corner(row, 6)
+		makeLabel(row, "Name", m.name, 14, C.TEXT, UDim2.new(0.5,0,1,0), UDim2.new(0,8,0,0)).TextXAlignment = Enum.TextXAlignment.Left
+		local pct = math.clamp(m.xp / m.max, 0, 1)
+		local barBg = makeFrame(row, "BarBg", UDim2.new(0.5,0,0,8), UDim2.new(0.5,0,0.5,0), C.BG, 0.5)
+		corner(barBg, 4)
+		local barFill = makeFrame(barBg, "Fill", UDim2.new(pct,0,1,0), UDim2.new(0,0,0,0), C.ACCENT, 0.8)
+		corner(barFill, 4)
+		makeLabel(row, "XP", string.format("%d/%d", m.xp, m.max), 12, C.DIM, UDim2.new(0.5,0,1,0), UDim2.new(0.5,0,0,0))
+		y += 62
+	end
+end
+
 -- ─────────────────────────────────────────────
 -- Public API
 -- ─────────────────────────────────────────────
@@ -689,6 +874,24 @@ end
 
 function ShopUI.OpenPlayerStats()
 	openPanel(buildPlayerStats)
+end
+
+function ShopUI.OpenInventory()
+	openPanel(buildInventory)
+end
+
+function ShopUI.OpenSettings()
+	openPanel(buildSettings)
+end
+
+function ShopUI.OpenSkills()
+	if not _gui then ShopUI.Init() end
+	openPanel(buildSkills)
+end
+
+function ShopUI.OpenMastery()
+	if not _gui then ShopUI.Init() end
+	openPanel(buildMastery)
 end
 
 function ShopUI.Close()

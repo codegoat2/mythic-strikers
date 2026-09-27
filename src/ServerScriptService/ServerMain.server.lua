@@ -34,6 +34,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Shared
 local Constants  = require(ReplicatedStorage.Shared.Config.Constants)
+local Palette    = require(ReplicatedStorage.Shared.Config.Palette)
 local Remotes    = require(ReplicatedStorage.Remotes)
 
 -- Server services
@@ -49,6 +50,12 @@ local TechniqueService   = require(ServicesFolder:WaitForChild("TechniqueService
 local AntiExploitService = require(ServicesFolder:WaitForChild("AntiExploitService"))
 local ObjectiveService   = require(ServicesFolder:WaitForChild("ObjectiveService"))
 local TrainingBuilder    = require(ServicesFolder:WaitForChild("TrainingBuilder"))
+
+-- World layer. LightingService and NPCService live in the World folder, not
+-- Services, because they are presentation, not game systems.
+local WorldFolder        = ServerScriptService:WaitForChild("World", 10)
+local LightingService    = require(WorldFolder:WaitForChild("LightingService"))
+local NPCService         = require(WorldFolder:WaitForChild("NPCService"))
 
 -- Rate-limit bookkeeping for the queue-join remote
 local _lastQueueJoin: { [number]: number } = {}
@@ -68,9 +75,9 @@ local _lastQueueJoin: { [number]: number } = {}
 if not workspace:FindFirstChild("SpawnLobby_0", true) then
 	local bootstrapSpawn = Instance.new("SpawnLocation")
 	bootstrapSpawn.Name          = "SpawnLobby_0"
-	bootstrapSpawn.Size          = Vector3.new(4, 1, 4)
+	bootstrapSpawn.Size          = Vector3.new(6, 1, 6)
 	bootstrapSpawn.CFrame        = CFrame.new(
-		Constants.LOBBY_ORIGIN + Vector3.new(0, 1, 160)
+		Constants.TOWN_ORIGIN + Vector3.new(0, 1.2, 0)
 	)
 	bootstrapSpawn.Anchored     = true
 	bootstrapSpawn.CanCollide   = true
@@ -78,8 +85,8 @@ if not workspace:FindFirstChild("SpawnLobby_0", true) then
 	bootstrapSpawn.Neutral      = true
 	bootstrapSpawn.Enabled      = true
 	bootstrapSpawn.Duration     = 0
-	bootstrapSpawn.BrickColor   = BrickColor.new("Bright yellow")
-	bootstrapSpawn.Material     = Enum.Material.Neon
+	bootstrapSpawn.Color        = Color3.fromRGB(90, 96, 104)
+	bootstrapSpawn.Material     = Enum.Material.SmoothPlastic
 	bootstrapSpawn.Transparency = 0.5
 	bootstrapSpawn.Parent       = workspace
 	print("[ServerMain] Bootstrap SpawnLocation created (SpawnLobby_0).")
@@ -90,6 +97,11 @@ end
 -- ─────────────────────────────────────────────
 local DEFAULT_MATCH_MODE    = "5v5"
 local MIN_PLAYERS_TO_START  = 2     -- minimum players to start a 5v5 match
+
+-- Graphics tier. TODO(launch): read the player's saved preference from their
+-- profile once Settings ships. Until then this is the server default, and the
+-- client can request a lower tier at any time via LightingService.SetQuality.
+local QUALITY_TIER = "HIGH"
 
 -- ── Enforce max server size (Studio: set MaxPlayers in Players service) ──────
 -- We can't set MaxPlayers from a script, but we can kick excess players.
@@ -108,6 +120,16 @@ enforceMaxPlayers()
 -- ─────────────────────────────────────────────
 Remotes.Init()
 print("[ServerMain] Remotes ready.")
+
+-- ─────────────────────────────────────────────
+-- Step 1b — Lighting
+--
+-- Must run before any world builder, because the builders read nothing from
+-- Lighting but WeatherService and the old StadiumBuilder both used to write
+-- to it. LightingService is now the only writer.
+-- ─────────────────────────────────────────────
+LightingService.Init(QUALITY_TIER)
+print("[ServerMain] LightingService ready.")
 
 -- ─────────────────────────────────────────────
 -- Step 2 — TeamService
@@ -153,6 +175,37 @@ end)
 -- undiscovered so the UI can render them as "???" instead of naming them.
 Remotes.BindFunction("GetTechniques", function(player: Player)
 	return TechniqueService.GetTechniqueListFor(player)
+end)
+
+-- Leaderboard. This RemoteFunction was declared in Constants and created by
+-- Remotes.Init(), but nothing ever bound it, so every leaderboard call would
+-- have returned nil. It now returns live server standings, which is honest:
+-- a global, DataStore-backed ranking needs published API access and is a
+-- later step, so the UI is told that rather than being fed a fake ranking.
+Remotes.BindFunction("GetLeaderboard", function(player: Player)
+	local entries = {}
+	for _, other in ipairs(Players:GetPlayers()) do
+		local profile = PlayerService.GetProfile(other)
+		if profile then
+			table.insert(entries, {
+				UserId      = other.UserId,
+				DisplayName = profile.DisplayName,
+				Level       = profile.Level,
+				Rank        = profile.Rank,
+				Rating      = profile.RankedRating,
+				Overall     = PlayerService.GetOverall(other),
+			})
+		end
+	end
+	table.sort(entries, function(a, b)
+		if a.Rating ~= b.Rating then return a.Rating > b.Rating end
+		return a.DisplayName < b.DisplayName
+	end)
+	return {
+		Scope      = "Server",
+		Persistent = false,
+		Entries    = entries,
+	}
 end)
 
 -- Clients can query their own profile (read-only snapshot)
@@ -407,21 +460,21 @@ function createLobbyBall()
 	-- Check if ball already exists
 	if lobby:FindFirstChild("LobbyBall") then return end
 
-	local ball = Instance.new("Part")
+	local template = ServerStorage.WorldAssets.Balls.TexturedSoccerBall
+	if not template then
+		warn("[ServerMain] TexturedSoccerBall not found in ServerStorage.WorldAssets.Balls")
+		return
+	end
+
+	local ball = template:Clone()
 	ball.Name = "LobbyBall"
-	ball.Shape = Enum.PartType.Ball
-	ball.Size = Vector3.new(2.4, 2.4, 2.4)
-	ball.BrickColor = BrickColor.new("Bright yellow")
-	ball.Material = Enum.Material.Neon
-	ball.CFrame = CFrame.new(Constants.LOBBY_ORIGIN + Vector3.new(0, 3, 0))
-	ball.Anchored = false
-	ball.CanCollide = true
-	-- Add a PointLight glow
-	local pl = Instance.new("PointLight")
-	pl.Brightness = 1
-	pl.Range = 12
-	pl.Color = Color3.fromRGB(255, 220, 100)
-	pl.Parent = ball
+	local meshPart = ball:FindFirstChild("Model"):FindFirstChild("MeshPart")
+	if meshPart then
+		ball.PrimaryPart = meshPart
+		ball:PivotTo(CFrame.new(Constants.TOWN_ORIGIN + Vector3.new(0, 3, 0)))
+	else
+		ball.Position = Constants.TOWN_ORIGIN + Vector3.new(0, 3, 0)
+	end
 	ball.Parent = workspace
 
 	-- Register with BallService for lobby mode
@@ -445,29 +498,72 @@ end)
 -- Step 10 — Wait for stadium then boot
 -- ─────────────────────────────────────────────
 task.spawn(function()
-	-- Wait for both Stadium and Lobby models (built by their Scripts)
-	local function waitForModel(name: string, timeout: number): boolean
+	-- ── Remove the editor baseplate ────────────────────────────────────
+	-- A place created from the Baseplate template keeps a 2048x16x2048 grey
+	-- Plastic slab in Workspace. default.project.json declares Workspace as a
+	-- bare container, so Rojo removes it on a clean sync — but until that
+	-- happens the slab shows through under the town and the training grounds
+	-- and reads as unfinished ground. Removing it at boot makes the world look
+	-- right whether or not Rojo is currently connected.
+	task.wait(1)
+	local removed = 0
+	for _, child in ipairs(workspace:GetChildren()) do
+		if child:IsA("BasePart") and child.Name == "Baseplate" then
+			child:Destroy()
+			removed += 1
+		end
+	end
+	if removed > 0 then
+		print(string.format("[ServerMain] Removed %d editor baseplate(s).", removed))
+	end
+
+	-- Wait for the three world models. Each builder parents its model
+	-- immediately and fills it, so existence is not enough — wait for the
+	-- Ready attribute, or services will bind to a half-built stadium.
+	local function waitForModel(name: string, timeout: number): Model?
 		local start = tick()
-		while tick() - start < timeout do
-			if workspace:FindFirstChild(name) then return true end
+		local deadline = start + timeout
+		while tick() < deadline do
+			local m = workspace:FindFirstChild(name)
+			if m then
+				while tick() < deadline and m:GetAttribute("Ready") ~= true do
+					task.wait(0.2)
+				end
+				if m:GetAttribute("Ready") == true then
+					return m :: Model
+				end
+				warn(string.format("[ServerMain] %s never reported Ready.", name))
+				return m :: Model
+			end
 			task.wait(0.5)
 		end
-		return false
+		warn(string.format("[ServerMain] Workspace.%s not found after %ds.", name, timeout))
+		return nil
 	end
 
-	local stadiumReady = waitForModel("Stadium", 20)
-	if not stadiumReady then
-		warn("[ServerMain] Workspace.Stadium not found after 20s — booting without it.")
-	else
-		print("[ServerMain] Stadium found.")
+	local stadium = waitForModel("Stadium", 60)
+	if stadium then
+		print("[ServerMain] Stadium ready.")
 	end
 
-	-- Lobby is also expected; it builds itself in parallel (LobbyBuilder Script)
-	local lobbyReady = waitForModel("Lobby", 15)
-	if not lobbyReady then
-		warn("[ServerMain] Workspace.Lobby not found after 15s — continuing anyway.")
-	else
-		print("[ServerMain] Lobby found.")
+	local lobby = waitForModel("Lobby", 60)
+	if lobby then
+		print("[ServerMain] Town centre ready.")
+	end
+
+	local world = waitForModel("World", 60)
+	if world then
+		print("[ServerMain] Town ready.")
+	end
+
+	-- Town population, once there is a town to populate.
+	if lobby then
+		local okNpc, errNpc = pcall(function()
+			NPCService.Init(QUALITY_TIER)
+		end)
+		if not okNpc then
+			warn("[ServerMain] NPCService failed to initialise: " .. tostring(errNpc))
+		end
 	end
 
 	bootGameSystems()

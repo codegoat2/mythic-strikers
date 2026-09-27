@@ -56,6 +56,9 @@ local _initialized    = false
 local _inLobby        = true      -- true when player is in lobby zone
 local _activeBuilding: string? = nil
 local _promptConnections: { RBXScriptConnection } = {}
+-- Parts already wired, so a rescan or a late tag does not double-connect a
+-- ProximityPrompt (which would open the shop twice per press).
+local _wired: { [BasePart]: boolean } = {}
 
 -- ─────────────────────────────────────────────
 -- Billboard labels over interactive objects
@@ -212,12 +215,37 @@ end
 -- ─────────────────────────────────────────────
 
 local function scanLobby(lobbyModel: Model)
+	local scanned = 0
+	local tagged  = 0
+	local prompts = 0
+	local wired   = 0
+
 	for _, desc in ipairs(lobbyModel:GetDescendants()) do
-		if desc:IsA("BasePart") and desc:FindFirstChild("InteractType") then
-			wirePrompt(desc :: BasePart)
+		if desc:IsA("BasePart") then
+			scanned += 1
+			if desc:FindFirstChild("InteractType") then
+				tagged += 1
+				if desc:FindFirstChildWhichIsA("ProximityPrompt") then
+					prompts += 1
+					if not _wired[desc :: BasePart] then
+						_wired[desc :: BasePart] = true
+						wirePrompt(desc :: BasePart)
+						wired += 1
+					end
+				end
+			end
 		end
 	end
-	print(string.format("[LobbyController] Wired %d interactive parts.", #_promptConnections))
+
+	print(string.format(
+		"[LobbyController] Scan: %d parts, %d tagged, %d with prompts, %d newly wired, %d total connections.",
+		scanned, tagged, prompts, wired, #_promptConnections
+	))
+	if #_promptConnections == 0 then
+		warn("[LobbyController] No interactive parts wired. "
+			.. "If tagged/prompts are 0 the lobby was scanned before it finished building.")
+	end
+	return #_promptConnections
 end
 
 -- ─────────────────────────────────────────────
@@ -324,13 +352,45 @@ function LobbyController.Init(shopUI: table?, uiCtrl: table?)
 		if lobby then
 			scanLobby(lobby :: Model)
 			refreshNPCCache(lobby :: Model)
-			-- Watch for newly added interactive parts (in case lobby is rebuilt)
-			lobby.DescendantAdded:Connect(function(desc)
-				if desc:IsA("BasePart") and desc:FindFirstChild("InteractType") then
-					task.wait()   -- let StringValue settle
-					wirePrompt(desc :: BasePart)
-				end
-			end)
+			-- Wait for the builder to finish populating the model. The Lobby
+			-- Model appears in Workspace before it has any children, so
+			-- scanning on mere existence found an empty town and wired nothing.
+			local readyDeadline = tick() + 20
+			while lobby:GetAttribute("Ready") ~= true and tick() < readyDeadline do
+				task.wait(0.2)
+			end
+			if lobby:GetAttribute("Ready") ~= true then
+				warn("[LobbyController] Lobby never reported Ready — scanning anyway.")
+			end
+
+			-- Scan, then keep rescanning briefly. A single early scan can still
+			-- land before every prompt has replicated, and `_wired` makes the
+			-- extra passes free.
+			for attempt = 1, 6 do
+				local count = scanLobby(lobby :: Model)
+				if count > 0 then break end
+				if attempt < 6 then task.wait(2) end
+			end
+
+			-- Watch for parts added later (lobby rebuild). The InteractType tag is
+			-- parented AFTER its part, so the tag check has to happen on a later
+			-- frame than the part's own DescendantAdded event; the old code
+			-- checked it before its task.wait and therefore never matched.
+			local function tryWire(desc: Instance)
+				if not desc:IsA("BasePart") then return end
+				task.delay(0.1, function()
+					if desc.Parent and desc:FindFirstChild("InteractType")
+						and not _wired[desc] then
+						_wired[desc] = true
+						wirePrompt(desc :: BasePart)
+					end
+				end)
+			end
+			lobby.DescendantAdded:Connect(tryWire)
+			-- Catch anything already present but tagged late.
+			for _, desc in ipairs(lobby:GetDescendants()) do
+				tryWire(desc)
+			end
 		else
 			warn("[LobbyController] Lobby model not found after 15s.")
 		end
@@ -338,6 +398,31 @@ function LobbyController.Init(shopUI: table?, uiCtrl: table?)
 
 	-- NPC animation
 	RunService.Heartbeat:Connect(animateNPCs)
+
+	-- Lobby fountain animation: a gentle vertical pulse on the jet and a
+	-- slow Y-axis wobble on the water disc so the plaza feels alive without
+	-- being distracting.
+	local TweenService = game:GetService("TweenService")
+	task.spawn(function()
+		local lobby = workspace:FindFirstChild("Lobby")
+		if not lobby then return end
+		local jet = lobby:FindFirstChild("Fountain_Jet")
+		local water = lobby:FindFirstChild("Fountain_Water")
+		if jet and jet:IsA("BasePart") then
+			local baseY = jet.Position.Y
+			local tween = TweenService:Create(jet, TweenInfo.new(1.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1), {
+				Position = Vector3.new(jet.Position.X, baseY + 0.25, jet.Position.Z),
+			})
+			tween:Play()
+		end
+		if water and water:IsA("BasePart") then
+			local baseY = water.Position.Y
+			local tween = TweenService:Create(water, TweenInfo.new(2.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1), {
+				Position = Vector3.new(water.Position.X, baseY + 0.08, water.Position.Z),
+			})
+			tween:Play()
+		end
+	end)
 
 	print("[LobbyController] Initialised.")
 end

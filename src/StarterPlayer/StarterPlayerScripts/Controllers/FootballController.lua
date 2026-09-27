@@ -25,9 +25,10 @@ local UserInputService  = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 
-local Constants          = require(ReplicatedStorage.Shared.Config.Constants)
-local Remotes            = require(ReplicatedStorage.Remotes)
-local TechniqueDefinitions = require(ReplicatedStorage.Shared.Techniques.TechniqueDefinitions)
+local Constants              = require(ReplicatedStorage.Shared.Config.Constants)
+local Remotes                = require(ReplicatedStorage.Remotes)
+local TechniqueDefinitions   = require(ReplicatedStorage.Shared.Techniques.TechniqueDefinitions)
+local ClientAssetRegistry    = require(script.Parent.Parent.ClientAssetRegistry)
 
 -- ─────────────────────────────────────────────
 -- Module
@@ -430,8 +431,17 @@ end
 
 local function onTechniqueResult(payload: table)
 	-- Server confirmed (or denied) a technique.
-	-- Future: trigger local VFX / animation feedback here.
 	if typeof(payload) ~= "table" then return end
+	if not payload.Success then return end
+
+	local position = payload.Position or Vector3.zero
+
+	if payload.VFX then
+		ClientAssetRegistry.SpawnVFX(payload.VFX, position)
+	end
+	if payload.SFX then
+		ClientAssetRegistry.PlaySFX(payload.SFX, position)
+	end
 end
 
 -- ─────────────────────────────────────────────
